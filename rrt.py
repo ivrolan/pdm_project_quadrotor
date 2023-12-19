@@ -29,14 +29,13 @@ class Node:
 class Graph:
     
     "Class which is the whole RRT graph"
-    def __init__(self, start, goal, maxIter=100):
+    def __init__(self, start, goal):
         
         self.nodeArray = []
         self.edgeArray = []
         self.start = Node(start[0], start[1])
         self.addNode(self.start)
         self.goal = goal
-        self.maxIter = maxIter
         self.goalReached = False
         
         
@@ -73,12 +72,29 @@ class Graph:
             
             
         return nearestNode
+    
+
+def collisionCheck(node, obstacleList):
+    
+    collision = False
+    
+    for obstacle in obstacleList:
+        
+        if (node.x == obstacle.x) and (node.y == obstacle.y):
+            
+            collision = True
+            
+    return collision
+            
         
 
     
-def rrt(graph):
+def rrt(graph, obstacles):
+    
+
     
     "Pick a random point"
+
     
     randX = np.random.randint(0, high=LEN)
     #print(randX)
@@ -87,15 +103,18 @@ def rrt(graph):
     
     newNode = Node(randX, randY)
     
-    nearestNode = graph.findNearestNode(randX, randY)
+    if collisionCheck(newNode, obstacles) == False:
+            
     
-    graph.addNodetoExistingNode(nearestNode, newNode)
+        nearestNode = graph.findNearestNode(randX, randY)
+    
+        graph.addNodetoExistingNode(nearestNode, newNode)
     
     
-    distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
-    if (distanceToGoal < GOAL_THRESHOLD):
+        distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
+        if (distanceToGoal < GOAL_THRESHOLD):
         
-        graph.goalReached = True
+            graph.goalReached = True
         
     
     
@@ -104,19 +123,30 @@ def rrt(graph):
 
 def main():
     
+    obstacleList = []
+    
+    for i in range(10, 20, 1):
+        for j in range(10, 20, 1):
+            obstacleNode = Node(i, j)
+            obstacleList.append(obstacleNode)
+    
     
     length = 100
     width = 100
     start = [1,1]
     goal = [75, 75]
+
+    
     
     graph = Graph(start, goal)
+
+    
     node = Node(50, 50)
     flag = True
 
     while graph.goalReached != True:
         
-        rrt(graph)
+        rrt(graph, obstacleList)
           
 
     
@@ -150,8 +180,12 @@ def main():
         
         ax.plot((optimalNodes[i].x, optimalNodes[i+1].x), (optimalNodes[i].y, optimalNodes[i+1].y), c='black')
     
+    for i in range(len(obstacleList)):
         
-    print("TEST")
+        ax.scatter(obstacleList[i].x, obstacleList[i].y, c='red')
+        print(obstacleList[i].x, obstacleList[i].y)
+    
+        
     
     return 0
 
