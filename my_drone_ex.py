@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 from gym_pybullet_drones.envs.CtrlAviary import CtrlAviary
 from gym_pybullet_drones.utils.enums import DroneModel
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
+from control.MPC import MPC_controller
 
 # Change if we want multiple drones
 num_drones = 1
 
 env = CtrlAviary(gui=True)
-duration_sec = 10
+duration_sec = 15
 DRONE_MODEL = DroneModel("cf2x")
 
 
@@ -28,7 +29,7 @@ INIT_XYZS = np.array([[R*np.cos((i/6)*2*np.pi+np.pi/2), R*np.sin((i/6)*2*np.pi+n
 INIT_RPYS = np.array([[0, 0,  i * (np.pi/2)/num_drones] for i in range(num_drones)])
 
 for i in range(NUM_WAYPOINTS):
-    TARGET_POS[i, :] = R*np.cos((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)+INIT_XYZS[0, 0]+10, R*np.sin((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)-R+INIT_XYZS[0, 1], INIT_XYZS[0,2]-0.5
+    TARGET_POS[i, :] = R*np.cos((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)+INIT_XYZS[0, 0], R*np.sin((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)-R+INIT_XYZS[0, 1], INIT_XYZS[0,2]
 wp_counters = np.array([int((i*NUM_WAYPOINTS/6)%NUM_WAYPOINTS) for i in range(num_drones)]) # counter for where we are in the trajectory
 
 # Initialize action vector
@@ -36,7 +37,7 @@ action = np.zeros((num_drones, 4)) # number of drones by the amount of actions, 
 
 # Initalize PID controllers for each drone (swap out later for e.g. LQR or MPC)
 if DRONE_MODEL in [DroneModel.CF2X, DroneModel.CF2P]:
-    ctrl = [DSLPIDControl(drone_model=DRONE_MODEL) for i in range(num_drones)]
+    ctrl = [MPC_controller(drone_model=DRONE_MODEL) for i in range(num_drones)]
 
 # Run simulation
 for i in range(0, int(duration_sec*env.CTRL_FREQ)):
