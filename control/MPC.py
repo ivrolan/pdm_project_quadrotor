@@ -2,9 +2,11 @@ import math
 import numpy as np
 import pybullet as p
 from scipy.spatial.transform import Rotation
+import cvxpy as cp
 
 from gym_pybullet_drones.control.BaseControl import BaseControl
 from gym_pybullet_drones.utils.enums import DroneModel
+from model.drone_description import DroneDescription
 
 class MPC_controller(BaseControl):
     """
@@ -19,6 +21,7 @@ class MPC_controller(BaseControl):
         if self.DRONE_MODEL != DroneModel.CF2X and self.DRONE_MODEL != DroneModel.CF2P:
             print("[ERROR] in MPC_controller.__init__(), DSLPIDControl requires DroneModel.CF2X or DroneModel.CF2P")
             exit()
+        self.drone_description = DroneDescription()
         self.Q = np.array([1]) # State tracking error
         self.R = np.array([1]) # Input cost matrix
         self.P_COEFF_FOR = np.array([.4, .4, 1.25])
@@ -179,6 +182,7 @@ class MPC_controller(BaseControl):
             self.integral_pos_e[2] = np.clip(self.integral_pos_e[2], -0.15, .15)
             #### PID target thrust #####################################
             #change to MPC
+            print(self.drone_description.A_matrix.astype)
             target_thrust = np.multiply(self.P_COEFF_FOR, pos_e) \
                             + np.multiply(self.I_COEFF_FOR, self.integral_pos_e) \
                             + np.multiply(self.D_COEFF_FOR, vel_e) + np.array([0, 0, self.GRAVITY])
