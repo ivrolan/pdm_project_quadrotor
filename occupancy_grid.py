@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class OccGrid3D:
 
@@ -14,7 +15,7 @@ class OccGrid3D:
 
         # TODO: note: for bigger areas with finer resolutions, it is possible that this matrix occupies a lot of memory and is slow to access
         # would a linear array be faster? 
-        self.occ_grid  = np.zeros((shape[0] // resolution, shape[1] // resolution, shape[2] // resolution), dtype=bool)
+        self.occ_grid  = np.zeros((int(shape[0] // resolution), int(shape[1] // resolution), int(shape[2] // resolution)), dtype=bool)
         self.dimensions = shape
         self.resolution = resolution
         self.origin = origin
@@ -35,14 +36,32 @@ class OccGrid3D:
 
         if self.inOccGrid(world_coords):
             # if it is inside dimensions compute the requested cell indices
-            x_index = (world_coords[0] - self.origin[0]) // self.resolution
-            y_index = (world_coords[1] - self.origin[1]) // self.resolution
-            z_index = (world_coords[2] - self.origin[2]) // self.resolution
+            x_index = int((world_coords[0] - self.origin[0]) // self.resolution)
+            y_index = int((world_coords[1] - self.origin[1]) // self.resolution)
+            z_index = int((world_coords[2] - self.origin[2]) // self.resolution)
         
             return (x_index, y_index, z_index)
         else:
             return None
+
+    def occupyCoords(self, world_coords : tuple):
+
+        indices = self.getIndicesAt(world_coords)
         
+        if indices == None:
+            raise IndexError("The requested world coordinates do not refer to any cell in the occupancy grid")
+        else:
+            self.occ_grid[indices[0], indices[1], indices[2]] = True
+    
+    def freeCoords(self, world_coords : tuple):
+
+        indices = self.getIndicesAt(world_coords)
+        
+        if indices == None:
+            raise IndexError("The requested world coordinates do not refer to any cell in the occupancy grid")
+        else:
+            self.occ_grid[indices[0], indices[1], indices[2]] = False
+
     def getOccupancyCell(self, indices : tuple) -> bool:
         # note: this is different from self.isCellOccupied() as the values in the OccupancyGrid can be between 0 and 255
         return self.occ_grid[indices[0], indices[1], indices[2]]
@@ -61,12 +80,11 @@ class OccGrid3D:
         else:
             return self.isCellOccupied(indices)
     
-    """
-        TODO: are they necessary or should we use directly self.occ_grid
-
-        def occupyCell(self, indices : tuple) -> bool:
-            pass
-        def occupyCoords(self, world_coords: tuple):
-            pass
-    """
-    
+    def plot(self):
+        """
+            Simple visualization of the cells in Matplotlib
+        """
+        ax = plt.figure().add_subplot(projection='3d')
+        ax.voxels(self.occ_grid, edgecolor='k')
+        ax.set_aspect('equal', adjustable='box')
+        plt.show()
