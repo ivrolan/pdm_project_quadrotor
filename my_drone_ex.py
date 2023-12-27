@@ -18,6 +18,7 @@ DRONE_MODEL = DroneModel("cf2x")
 
 # The amount of waypoints in our trajectory, e.g. amount of RRT points
 NUM_WAYPOINTS = env.CTRL_FREQ*duration_sec
+# NUM_WAYPOINTS = 4
 TARGET_POS = np.zeros((NUM_WAYPOINTS,3)) # number of waypoints by x, y, z position
 PYB_CLIENT = env.getPyBulletClient()
 
