@@ -9,6 +9,7 @@ import math
 import random
 import matplotlib.pyplot as plt
 import numpy as np
+from scenarios import randomScenario, treeScenario, wallScenario
 
 LEN = 100
 HIGHT = 100
@@ -76,9 +77,10 @@ class Graph:
         
 
     
-def rrt(graph):
+def rrt(graph, occ_grid):
     
     "Pick a random point"
+    numPoints = 10
     
     randX = np.random.randint(0, high=LEN)
     #print(randX)
@@ -87,22 +89,34 @@ def rrt(graph):
     
     newNode = Node(randX, randY)
     
-    nearestNode = graph.findNearestNode(randX, randY)
+    if (occ_grid.inOccGrid(newNode) == False):
     
-    graph.addNodetoExistingNode(nearestNode, newNode)
-    
-    
-    distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
-    if (distanceToGoal < GOAL_THRESHOLD):
+        nearestNode = graph.findNearestNode(randX, randY)
         
-        graph.goalReached = True
+        xPath = np.linspace(nearestNode.x, randX, numPoints)
+        yPath = np.linspace(nearestNode.y, randY, numPoints)
         
-    
+        for i in range(0, numPoints):
+            
+            if (occ_grid.inOccGrid((xPath[i], yPath[i])) == False):
+        
+                graph.addNodetoExistingNode(nearestNode, newNode)
+        
+        
+                distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
+                if (distanceToGoal < GOAL_THRESHOLD):
+            
+                    graph.goalReached = True
+        
+            else:
+                break
     
 
 
 
 def main():
+    
+    scene_ids, occ_grid = treeScenario(4)
     
     
     length = 100
@@ -116,7 +130,7 @@ def main():
 
     while graph.goalReached != True:
         
-        rrt(graph)
+        rrt(graph, occ_grid)
           
 
     
