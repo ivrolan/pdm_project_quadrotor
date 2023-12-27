@@ -33,18 +33,18 @@ class DroneDescription():
         self.A_matrix[4,6] = -self.g
         self.A_matrix[6,9] = self.A_matrix[7,10] = self.A_matrix[8,11] = 1
 
-        # self.B_matrix = np.zeros((12,4))
-        # self.B_matrix[5,0] = -1/self.mass
-        # self.B_matrix[9,1] = 1/self.I_xx
-        # self.B_matrix[10,2] = 1/self.I_yy
-        # self.B_matrix[11,3] = 1/self.I_zz
-
         self.B_matrix = np.zeros((12,4))
-        self.B_matrix[5,:] = (2*self.kf)/self.mass
-        self.B_matrix[9,0] = self.B_matrix[9,1] = -np.sqrt(2)*self.arm*self.kf/self.I_xx
-        self.B_matrix[9,2] = self.B_matrix[9,3] = np.sqrt(2)*self.arm*self.kf/self.I_xx
-        self.B_matrix[10,0] = self.B_matrix[10,3] = -np.sqrt(2)*self.arm*self.kf/self.I_yy
-        self.B_matrix[10,1] = self.B_matrix[10,2] = np.sqrt(2)*self.arm*self.kf/self.I_yy
-        self.B_matrix[11,0] = self.B_matrix[11,2] = -2*self.km/self.I_zz
-        self.B_matrix[11,1] = self.B_matrix[11,3] = 2*self.km/self.I_zz
-        self.B_matrix = self.B_matrix*16073
+        self.B_matrix[5,0] = -1/self.mass
+        self.B_matrix[9,1] = 1/self.I_xx
+        self.B_matrix[10,2] = 1/self.I_yy
+        self.B_matrix[11,3] = 1/self.I_zz
+
+        # self.B_matrix = np.zeros((12,4))
+        # self.B_matrix[5,:] = (2*self.kf)/self.mass
+        # self.B_matrix[9,0] = self.B_matrix[9,1] = -np.sqrt(2)*self.arm*self.kf/self.I_xx
+        # self.B_matrix[9,2] = self.B_matrix[9,3] = np.sqrt(2)*self.arm*self.kf/self.I_xx
+        # self.B_matrix[10,0] = self.B_matrix[10,3] = -np.sqrt(2)*self.arm*self.kf/self.I_yy
+        # self.B_matrix[10,1] = self.B_matrix[10,2] = np.sqrt(2)*self.arm*self.kf/self.I_yy
+        # self.B_matrix[11,0] = self.B_matrix[11,2] = -2*self.km/self.I_zz
+        # self.B_matrix[11,1] = self.B_matrix[11,3] = 2*self.km/self.I_zz
+        # self.B_matrix = self.B_matrix*16073
