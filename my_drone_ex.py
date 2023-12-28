@@ -30,7 +30,8 @@ INIT_XYZS = np.array([[R*np.cos((i/6)*2*np.pi+np.pi/2), R*np.sin((i/6)*2*np.pi+n
 INIT_RPYS = np.array([[0, 0,  i * (np.pi/2)/num_drones] for i in range(num_drones)])
 
 for i in range(NUM_WAYPOINTS):
-    TARGET_POS[i, :] = R*np.cos((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)+INIT_XYZS[0, 0], R*np.sin((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)-R+INIT_XYZS[0, 1], INIT_XYZS[0,2]
+    # TARGET_POS[i, :] = R*np.cos((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)+INIT_XYZS[0, 0], R*np.sin((i/NUM_WAYPOINTS)*(2*np.pi)+np.pi/2)-R+INIT_XYZS[0, 1], INIT_XYZS[0,2]
+     TARGET_POS[i,:] = np.array([2,2,2])
 wp_counters = np.array([int((i*NUM_WAYPOINTS/6)%NUM_WAYPOINTS) for i in range(num_drones)]) # counter for where we are in the trajectory
 
 # Initialize action vector
@@ -58,9 +59,12 @@ for i in range(0, int(duration_sec*env.CTRL_FREQ)):
                                                                 )
 
     # increment to the next waypoint
+    distance = np.sqrt((obs[j][0] - TARGET_POS[wp_counters[j], 0])**2 + (obs[j][1] - TARGET_POS[wp_counters[j], 1])**2 + (obs[j][2] - TARGET_POS[wp_counters[j], 2])**2)
+    # print(f"DISTANCE {distance}")
     for j in range(num_drones):
-            wp_counters[j] = wp_counters[j] + 1 if wp_counters[j] < (NUM_WAYPOINTS-1) else 0
-
+            if distance < 5:
+                wp_counters[j] = wp_counters[j] + 1 if wp_counters[j] < (NUM_WAYPOINTS-1) else wp_counters[-1]
+            # print("waypoint counter",wp_counters)
     time.sleep(1. / env.CTRL_FREQ)
 env.close()
 

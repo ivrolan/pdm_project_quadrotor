@@ -174,33 +174,30 @@ class MPC_controller(BaseControl):
         targets = target_pos
         x_current = np.concatenate((cur_pos,cur_vel,cur_rpy,cur_ang_vel))
         constraints += [x[:, 0] == x_current]
-
+        hovering_rpm = 10000 
+        hover_rpm = np.array([hovering_rpm, hovering_rpm, hovering_rpm, hovering_rpm])
         for k in range(self.horizon):
-            # cost += cp.quad_form(x[:3,k] - targets,self.Q_pos) + cp.quad_form(u[:,k], self.R_pos)
-            cost += cp.norm(x[2,k]-10, 2)**2 + cp.norm(x[0,k]-200,2)**2
+            cost += cp.quad_form(x[:3,k] - targets,self.Q_pos) + cp.quad_form(u[:,k], self.R_pos)
+            # cost += cp.norm(x[2,k]-10, 2)**2 + cp.norm(x[0,k]-20,2)**2 + cp.norm(x[3,k],2)**2 + cp.norm(x[4,k],2)**2 + cp.norm(x[5,k],2)**2 + cp.quad_form(u[:,k], self.R_pos)
             constraints += [x[:, k+1] == self.drone_description.A_matrix @ x[:,k] + self.drone_description.B_matrix @ u[:,k]]
             # constraints += [x[3:6,k+1]] <= np.array([self.drone_description.max_speed_kmh/3.6])
             # constraints += [x[:, k+1] >= x[:, k] + 0.01]
-            # constraints += [u[:,k] == np.array([10,10,10,10])]
+            # constraints += [u[:,k] >= hover_rpm]
 
-        cost += cp.quad_form(x[:3,self.horizon] - targets,self.Q_pos)
+        # cost += cp.quad_form(x[:3,self.horizon] - targets,self.Q_pos)
         problem = cp.Problem(cp.Minimize(cost), constraints)
         problem.solve(solver=cp.OSQP, verbose = False, max_iter = 100)
-        # print(f"HALLO{u.value}")
-        scalar_thrust = u[0,0].value
-        # scalar_thrust += 0.2640127524095992
-        thrust = (math.sqrt(scalar_thrust / (4*self.KF)) - self.PWM2RPM_CONST) / self.PWM2RPM_SCALE
-        target_torques = u[1:4,0].value
-        # target_torques += np.array([0.07446838, -1.92570175, -0.00870949])
-        target_torques = np.clip(target_torques, -3200, 3200)
-        pwm = thrust + np.dot(self.MIXER_MATRIX, target_torques)
-        pwm = np.clip(pwm, self.MIN_PWM, self.MAX_PWM)
-        rpm = self.PWM2RPM_SCALE * pwm + self.PWM2RPM_CONST
-        # print(f"current pos is {cur_pos}")
-        # print(x.value[:3,0])
+        # scalar_thrust = u[0,0].value
+        # thrust = (math.sqrt(scalar_thrust / (4*self.KF)) - self.PWM2RPM_CONST) / self.PWM2RPM_SCALE
+        # target_torques = u[1:4,0].value
+        # target_torques = np.clip(target_torques, -3200, 3200)
+        # pwm = thrust + np.dot(self.MIXER_MATRIX, target_torques)
+        # pwm = np.clip(pwm, self.MIN_PWM, self.MAX_PWM)
+        # rpm = self.PWM2RPM_SCALE * pwm + self.PWM2RPM_CONST
+        rpm = u[:,0].value
         print(problem.value)
         print(rpm)
-        return rpm
+        return rpm*3
 
     def _dslPIDPositionControl(self,
                                 control_timestep,
