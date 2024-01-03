@@ -37,12 +37,13 @@ def randomScenario(n_boxes : int, min_bound = [-2., -2, 0], max_bound = [2., 2.,
     Creates pillars with smaller cubes and return the list with all the bodyIDs related to them
 """
 
-def treeScenario(n_trees : int, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.]) -> list:
-
+def treeScenario(n_trees : int, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], size=0.5, using_sim=False) -> list:
+    # TODO: personally, i'm not fully comfortable with the `using_sim` flag
+    # how to decouple the creation of the occ_grid from the simulation?
     ids = []
 
     orient = p.getQuaternionFromEuler([0,0,0])
-    size = 0.5
+    # size = 0.5
 
     # for occ_grid generation
     origin = min_bound
@@ -55,7 +56,8 @@ def treeScenario(n_trees : int, min_bound = [-2., -2, 0], max_bound = [2., 2., 2
         y = random.uniform(min_bound[1], max_bound[1])
         
         for j in range(int((max_bound[2] - min_bound[2])/size)):
-            ids.append(p.loadURDF("cube.urdf", [x, y,j*size], orient, globalScaling=size, useFixedBase = True))
+            if using_sim:
+                ids.append(p.loadURDF("cube.urdf", [x, y,j*size], orient, globalScaling=size, useFixedBase = True))
             # mark as occupied
             my_occ_grid.occupyCoords([x,y,j*size])
     return ids, my_occ_grid
