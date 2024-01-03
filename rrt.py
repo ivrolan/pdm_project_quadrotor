@@ -11,10 +11,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scenarios import randomScenario, treeScenario, wallScenario
 
-LENGTH = 100
-HEIGHT = 100
-WIDTH = 100
-GOAL_THRESHOLD = 10
+# to scale the voxels when plotting
+from scipy.ndimage import zoom
+LENGTH = 80
+HEIGHT = 80
+WIDTH = 80
+GOAL_THRESHOLD = 5
 
 class Node:
     
@@ -84,9 +86,9 @@ class Graph:
         z_path = np.linspace(node1.x, node2.z, num_points)
         
         
-        for i in range(num_points, 0, -1):
-            
-            if (obs.inOccGrid((x_path[i], y_path[i], z_path[i]))):
+        for i in range(num_points-1, 0, -1):
+            print(i)
+            if (obs.isCoordOccupied((x_path[i], y_path[i], z_path[i]))):
                 return True
             
         return False
@@ -116,9 +118,9 @@ class Graph:
         
     
     
-    def draw(self):
+    def draw(self, obs=None):
         
-        
+        print("drawing")
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
         ax.set_xlim([0, WIDTH])
@@ -135,8 +137,29 @@ class Graph:
             
             ax.plot((optimalNodes[i].x, optimalNodes[i+1].x), (optimalNodes[i].y, optimalNodes[i+1].y), (optimalNodes[i].z, optimalNodes[i+1].z), c='red')
         
+        if obs != None:
+            print("drawing voxels")
+            print(obs.occ_grid.shape)
+            
+            world_voxels = scale_3d_matrix_values(obs.occ_grid, obs.resolution)
+            print(world_voxels.shape)
+            ax.voxels(world_voxels, edgecolor='k')
+            print("done")
         plt.show()
-    
+
+def scale_3d_matrix_values(matrix, scale_factor):
+    x, y, z = matrix.shape
+    scaled_matrix = np.zeros((x * scale_factor, y * scale_factor, z * scale_factor), dtype=matrix.dtype)
+
+    for i in range(x):
+        for j in range(y):
+            for k in range(z):
+                scaled_matrix[i*scale_factor:(i+1)*scale_factor, 
+                              j*scale_factor:(j+1)*scale_factor,
+                              k*scale_factor:(k+1)*scale_factor] = matrix[i, j, k]
+
+    return scaled_matrix
+   
 def rrt(graph, occ_grid):
     
     "Pick a random point"
@@ -150,7 +173,7 @@ def rrt(graph, occ_grid):
     
     nearestNode = graph.findNearestNode(randX, randY, randZ)
     
-    if not graph.checkCollision(nearestNode, newNode):
+    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=numPoints):
         graph.addNodetoExistingNode(nearestNode, newNode)
         
         
@@ -166,16 +189,11 @@ def rrt(graph, occ_grid):
 
 def main():
     
-    scene_ids, occ_grid = treeScenario(4, [0.,0.,0.], [80,80,80])
+    scene_ids, occ_grid = treeScenario(4, [0.,0.,0.], [80,80,80], size=10)
     
-    
-    length = 100
-    width = 100
-    height = 100
     start = [1,1,1]
     goal = [75, 75,75]
 
-    
     
     graph = Graph(start, goal)
 
@@ -186,7 +204,7 @@ def main():
         rrt(graph, occ_grid)
           
 
-    graph.draw()
+    graph.draw(obs=occ_grid)
     optimalNodes = graph.getOptimalPath()
     
     return 0
