@@ -24,7 +24,7 @@ class MPC_controller(BaseControl):
         self.drone_description = DroneDescription()
         self.Q_pos = 10*np.eye(3) # State tracking error for position and velocity
         self.R_pos = 0.01*np.eye(4) # Input cost matrix
-        self.horizon = 10
+        self.horizon = 50
         self.P_COEFF_FOR = np.array([.4, .4, 1.25])
         self.I_COEFF_FOR = np.array([.05, .05, .05])
         self.D_COEFF_FOR = np.array([.2, .2, .5])
@@ -167,26 +167,45 @@ class MPC_controller(BaseControl):
         cur_rpy = np.array(p.getEulerFromQuaternion(cur_quat))
         x = cp.Variable((12, self.horizon + 1)) # cp.Variable((dim_1, dim_2))
         u = cp.Variable((4, self.horizon))
-        cost = 0
+        cost = 0.
         constraints = []
         # targets = np.concatenate((target_pos, target_vel, target_rpy))
         targets = target_pos
         x_current = np.concatenate((cur_pos,cur_vel,cur_rpy,cur_ang_vel))
+        print("shape x", x_current.shape)
         constraints += [x[:, 0] == x_current]
-        tracking_weight = 10
+        tracking_weight = 100
+        input_weight = 0.01
+        max_rpm = (self.PWM2RPM_SCALE * self.MAX_PWM + self.PWM2RPM_CONST) * np.ones(4)
+        print("max:", max_rpm)
+
+        min_rpm = (self.PWM2RPM_SCALE * self.MIN_PWM + self.PWM2RPM_CONST) * np.ones(4)
+        print("min: ", min_rpm)
         for k in range(self.horizon):
-            cost += tracking_weight*(cp.norm(x[0,k]-2, 2)**2 + cp.norm(x[1,k]-2, 2)**2 + cp.norm(x[2,k]-2, 2)**2) + cp.norm(x[5,k], 2)**2 #+ cp.quad_form(u[:,k], self.R_pos)
+            cost += tracking_weight*(cp.norm(x[0,k]-1., 2)**2 + cp.norm(x[1,k]-1., 2)**2 + cp.norm(x[2,k]-1., 2)**2) +input_weight* cp.quad_form(u[:,k], self.R_pos)
             constraints += [x[:, k+1] == self.drone_description.A_matrix @ x[:,k] + self.drone_description.B_matrix @ u[:,k]]
             # constraints += [x[3:6,k+1] <= np.repeat(self.drone_description.max_speed_kmh/3.6,3)]
+            constraints += [u[:,k] <= max_rpm]
+            constraints += [u[:,k] >= min_rpm]
         # constraints += [x[:3,self.horizon] >= np.array([1.0,1.0,1.0])]
 
-        cost += cp.norm(x[0,self.horizon]-2, 2)**2 + cp.norm(x[1,self.horizon]-2, 2)**2 + cp.norm(x[2,self.horizon]-2, 2)**2 + cp.norm(x[5,k], 2)**2
+        cost += cp.norm(x[0,self.horizon]-1., 2)**2 + cp.norm(x[1,self.horizon]-1., 2)**2 + cp.norm(x[2,self.horizon]-1., 2)**2 + cp.norm(x[5,k], 2)**2
+        #constraints += [x[:3, self.horizon] == np.array([2.,2.,2.])]
         problem = cp.Problem(cp.Minimize(cost), constraints)
-        problem.solve(solver=cp.OSQP, verbose = False, max_iter = 200)
-        rpm = u[:,0].value
+        out = problem.solve(solver=cp.OSQP, verbose = False, max_iter = 10000)
+        print("output", out)
+        rpm = u[:,self.horizon-1].value
+        
         print(problem._status)
-        print(rpm)
-        return rpm*11
+        print("cost", cost.value)
+        print(u[1,:].value)
+        print(x[:3,:].value)
+        print("out rpm: ", rpm)
+        # print(type(rpm))
+        if problem._status == "infeasible":
+            print("something went wrong!")
+            raise ValueError("RPM are undefined")
+        return rpm
 
     def _dslPIDPositionControl(self,
                                 control_timestep,
