@@ -9,6 +9,7 @@ import math
 import random
 import matplotlib.pyplot as plt
 import numpy as np
+from scenarios import randomScenario, treeScenario, wallScenario
 
 LENGTH = 100
 HEIGHT = 100
@@ -70,8 +71,25 @@ class Graph:
             
             
         return nearestNode
-    
-    
+    def checkCollision(self, node1 : Node, node2: Node, obs, num_points=10) -> bool:
+        """
+        Check the path between node1 and node2 taking node2 as endpoint.
+        Returns True if collision, False if not
+        """
+        # assume nodes are 3D
+        # TODO: this clean this
+
+        x_path = np.linspace(node1.x, node2.x, num_points)
+        y_path = np.linspace(node1.y, node2.y, num_points)
+        z_path = np.linspace(node1.x, node2.z, num_points)
+        
+        
+        for i in range(num_points, 0, -1):
+            
+            if (obs.inOccGrid((x_path[i], y_path[i], z_path[i]))):
+                return True
+            
+        return False
     def getOptimalPath(self):
         
         flag = True
@@ -119,32 +137,28 @@ class Graph:
         
         plt.show()
     
-def rrt(graph):
-    
-
+def rrt(graph, occ_grid):
     
     "Pick a random point"
-
+    numPoints = 10
     
     randX = np.random.uniform(0, LENGTH)
     randY = np.random.uniform(0, WIDTH)
     randZ = np.random.uniform(0, HEIGHT)
     
-    newNode = Node(randX, randY, randZ)
-    
-
-            
+    newNode = Node(randX, randY,randZ)
     
     nearestNode = graph.findNearestNode(randX, randY, randZ)
-
-    graph.addNodetoExistingNode(nearestNode, newNode)
-
-
-    distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2 + (randZ - graph.goal[2])**2)
-    if (distanceToGoal < GOAL_THRESHOLD):
     
-        graph.goalReached = True
-    
+    if not graph.checkCollision(nearestNode, newNode):
+        graph.addNodetoExistingNode(nearestNode, newNode)
+        
+        
+        distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
+        if (distanceToGoal < GOAL_THRESHOLD):
+            
+            graph.goalReached = True
+            
     
     
 
@@ -152,7 +166,7 @@ def rrt(graph):
 
 def main():
     
-
+    scene_ids, occ_grid = treeScenario(4, [0.,0.,0.], [80,80,80])
     
     
     length = 100
@@ -169,52 +183,11 @@ def main():
 
     while graph.goalReached != True:
         
-        rrt(graph)
+        rrt(graph, occ_grid)
           
 
     graph.draw()
     optimalNodes = graph.getOptimalPath()
-    #goalNode = graph.nodeArray[-1]
-    #print(goalNode)
-    #optimalNodes = [goalNode]
-    
-    # Return the optimal path
-    
-    #while flag != False:
-        #print(goalNode.x)
-        #print(graph.start.x)
-    
-        #if (goalNode.x == graph.start.x) and (goalNode.y == graph.start.y) and (goalNode.z == graph.start.z):
-            #optimalNodes.append(goalNode)
-            #flag = False
-            
-        #else:
-            #parent = goalNode.parent
-            #optimalNodes.append(goalNode)
-            #goalNode = parent
-    
-     # print some stuff here   
-     
-    #fig = plt.figure()
-    #ax = fig.add_subplot(projection='3d')
-    #ax.set_xlim([0, width])
-    #ax.set_ylim([0, length])
-    #ax.set_zlim([0, height])
-
-   # for edge in graph.edgeArray:
-        
-        #ax.plot(edge[0], edge[1], edge[2])
-        
-    #for i in range(len(optimalNodes)-1):
-        
-        #ax.plot((optimalNodes[i].x, optimalNodes[i+1].x), (optimalNodes[i].y, optimalNodes[i+1].y), (optimalNodes[i].z, optimalNodes[i+1].z), c='black')
-    
-    #for i in range(len(obstacleList)):
-        
-        #ax.scatter(obstacleList[i].x, obstacleList[i].y,  c='red')
-        #print(obstacleList[i].x, obstacleList[i].y)
-    
-        
     
     return 0
 
