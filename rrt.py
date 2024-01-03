@@ -23,8 +23,6 @@ class Node:
         self.z = z
         self.parent = None
         self.children = []
-        
-        
 
 
 class Graph:
@@ -38,7 +36,6 @@ class Graph:
         self.addNode(self.start)
         self.goal = goal
         self.goalReached = False
-        
         
     
     def addNode(self, node):
@@ -60,7 +57,7 @@ class Graph:
         self.addEdge(nodeInGraph, nodeToAdd)
     
     def findNearestNode(self, x, y, z):
-        minDis = 10000000;
+        minDis = 10000000
         nearestNode = Node(0,0,0)
         
         for node in self.nodeArray:
@@ -79,14 +76,14 @@ class Graph:
         
         flag = True
         goalNode = self.nodeArray[-1]
-        print(goalNode)
+        #print(goalNode)
         optimalNodes = [goalNode]
         
         # Return the optimal path
         
         while flag != False:
-            print(goalNode.x)
-            print(self.start.x)
+            #print(goalNode.x)
+            #print(self.start.x)
         
             if (goalNode.x == self.start.x) and (goalNode.y == self.start.y) and (goalNode.z == self.start.z):
                 optimalNodes.append(goalNode)
@@ -129,11 +126,9 @@ def rrt(graph):
     "Pick a random point"
 
     
-    randX = np.random.randint(0, high=LENGTH)
-    #print(randX)
-    randY = np.random.randint(0, high=WIDTH)
-    #print(randY)
-    randZ = np.random.randint(0, high=HEIGHT)
+    randX = np.random.uniform(0, LENGTH)
+    randY = np.random.uniform(0, WIDTH)
+    randZ = np.random.uniform(0, HEIGHT)
     
     newNode = Node(randX, randY, randZ)
     
