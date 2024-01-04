@@ -83,7 +83,7 @@ class Graph:
 
         x_path = np.linspace(node1.x, node2.x, num_points)
         y_path = np.linspace(node1.y, node2.y, num_points)
-        z_path = np.linspace(node1.x, node2.z, num_points)
+        z_path = np.linspace(node1.z, node2.z, num_points)
         
         
         for i in range(num_points-1, 0, -1):
@@ -118,14 +118,14 @@ class Graph:
         
     
     
-    def draw(self, obs=None):
+    def draw(self, min_bound: tuple, max_bound:tuple,obs=None):
         
         print("drawing")
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
-        ax.set_xlim([0, WIDTH])
-        ax.set_ylim([0, LENGTH])
-        ax.set_zlim([0, HEIGHT])
+        ax.set_xlim([min_bound[0], max_bound[0]])
+        ax.set_ylim([min_bound[1], max_bound[1]])
+        ax.set_zlim([min_bound[2], max_bound[2]])
 
         for edge in self.edgeArray:
             
@@ -160,16 +160,16 @@ def scale_3d_matrix_values(matrix, scale_factor):
 
     return scaled_matrix
    
-def rrt(graph, occ_grid, points_interp=20):
+def rrt(graph, occ_grid, goal_threshold, points_interp=20):
     """
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
     min_space = occ_grid.origin
     max_space = min_space + occ_grid.dimensions
 
-    randX = np.random.uniform(min_space[0], max_space[0])
-    randY = np.random.uniform(min_space[1], max_space[1])
-    randZ = np.random.uniform(min_space[2], max_space[2])
+    randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
+    randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
+    randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
     
     newNode = Node(randX, randY,randZ)
     
@@ -180,7 +180,7 @@ def rrt(graph, occ_grid, points_interp=20):
         
         
         distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
-        if (distanceToGoal < GOAL_THRESHOLD):
+        if (distanceToGoal < goal_threshold):
             
             graph.goalReached = True
             
