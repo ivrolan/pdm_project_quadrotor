@@ -29,15 +29,16 @@ print("GOAL:", goal)
 # compute path with rrt
 
 graph = rrt.Graph(start, goal)
-threshold = 0.2
-
+# step < threshold!
+threshold = 0.8
+step = 0.2
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions
 
 
 while graph.goalReached != True:
 
-    rrt.rrt(graph, occ_grid, threshold, points_interp=100)
+    rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=50)
 
 graph.draw(min_bound, max_bound)
 

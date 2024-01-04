@@ -160,7 +160,7 @@ def scale_3d_matrix_values(matrix, scale_factor):
 
     return scaled_matrix
    
-def rrt(graph, occ_grid, goal_threshold, points_interp=20):
+def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
     """
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
@@ -175,11 +175,23 @@ def rrt(graph, occ_grid, goal_threshold, points_interp=20):
     
     nearestNode = graph.findNearestNode(randX, randY, randZ)
     
-    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
-        graph.addNodetoExistingNode(nearestNode, newNode)
+    # extend from nearestNode with a fixed step
+    nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
+    norm_vec = np.array([randX, randY,randZ]) - nearest_vec
+
+    if np.linalg.norm(norm_vec) > step:
+        norm_vec = norm_vec / np.linalg.norm(norm_vec)
+
+        to_add_vec = nearest_vec + step * norm_vec
+        to_add_node = Node(to_add_vec[0], to_add_vec[1], to_add_vec[2])
+    else:
+        to_add_node = newNode
+
+    if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
+        graph.addNodetoExistingNode(nearestNode, to_add_node)
         
         
-        distanceToGoal = np.sqrt((randX - graph.goal[0])**2 + (randY - graph.goal[1])**2)
+        distanceToGoal = np.sqrt((to_add_node.x - graph.goal[0])**2 + (to_add_node.y - graph.goal[1])**2 + (to_add_node.z - graph.goal[2])**2)
         if (distanceToGoal < goal_threshold):
             
             graph.goalReached = True
