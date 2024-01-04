@@ -15,17 +15,22 @@ class OccGrid3D:
 
         # TODO: note: for bigger areas with finer resolutions, it is possible that this matrix occupies a lot of memory and is slow to access
         # would a linear array be faster? 
-        self.occ_grid  = np.zeros((int(shape[0] // resolution), int(shape[1] // resolution), int(shape[2] // resolution)), dtype=bool)
+
+        assert shape[0] > 0.
+        assert shape[1] > 0.
+        assert shape[2] > 0.
+
+        self.occ_grid  = np.zeros((int(shape[0] / resolution), int(shape[1] / resolution), int(shape[2] / resolution)), dtype=bool)
         self.dimensions = shape
         self.resolution = resolution
         self.origin = origin
     
     def inOccGrid(self, world_coords : tuple) -> bool:
-        if world_coords[0] > self.origin[0] + self.dimensions[0] or world_coords[0] < self.origin[0]:
+        if world_coords[0] >= self.origin[0] + self.dimensions[0] or world_coords[0] < self.origin[0]:
             return False
-        if world_coords[1] > self.origin[1] + self.dimensions[1] or world_coords[1] < self.origin[1]:
+        if world_coords[1] >= self.origin[1] + self.dimensions[1] or world_coords[1] < self.origin[1]:
             return False
-        if world_coords[2] > self.origin[2] + self.dimensions[2] or world_coords[2] < self.origin[2]:
+        if world_coords[2] >= self.origin[2] + self.dimensions[2] or world_coords[2] < self.origin[2]:
             return False
         return True
     
@@ -36,10 +41,17 @@ class OccGrid3D:
 
         if self.inOccGrid(world_coords):
             # if it is inside dimensions compute the requested cell indices
-            x_index = int((world_coords[0] - self.origin[0]) // self.resolution)
-            y_index = int((world_coords[1] - self.origin[1]) // self.resolution)
-            z_index = int((world_coords[2] - self.origin[2]) // self.resolution)
-        
+            x_index = int((world_coords[0] - self.origin[0]) / self.resolution)
+            y_index = int((world_coords[1] - self.origin[1]) / self.resolution)
+            z_index = int((world_coords[2] - self.origin[2]) / self.resolution)
+
+            if x_index == self.occ_grid.shape[0]:
+                print(f"warning: x_index is {x_index}, as world_coords[0] is {world_coords[0]}, origin_x: {self.origin[0]} and res is {self.resolution}")
+            if y_index == self.occ_grid.shape[1]:
+                print(f"warning: y_index is {y_index}, as world_coords[1] is {world_coords[1]}, origin_y: {self.origin[1]} and res is {self.resolution}")
+            if z_index == self.occ_grid.shape[2]:
+                print(f"warning: z_index is {z_index}, as world_coords[2] is {world_coords[2]}, origin_z: {self.origin[2]} and res is {self.resolution}")
+
             return (x_index, y_index, z_index)
         else:
             return None
