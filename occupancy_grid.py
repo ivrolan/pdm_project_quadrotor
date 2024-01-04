@@ -49,7 +49,7 @@ class OccGrid3D:
         indices = self.getIndicesAt(world_coords)
         
         if indices == None:
-            raise IndexError("The requested world coordinates do not refer to any cell in the occupancy grid")
+            raise IndexError(f"The requested world coordinates {world_coords} do not refer to any cell in the occupancy grid with origin {self.origin} and dimensions {self.dimensions}")
         else:
             self.occ_grid[indices[0], indices[1], indices[2]] = True
     
@@ -58,7 +58,7 @@ class OccGrid3D:
         indices = self.getIndicesAt(world_coords)
         
         if indices == None:
-            raise IndexError("The requested world coordinates do not refer to any cell in the occupancy grid")
+            raise IndexError(f"The requested world coordinates {world_coords} do not refer to any cell in the occupancy grid with origin {self.origin} and dimensions {self.dimensions}")
         else:
             self.occ_grid[indices[0], indices[1], indices[2]] = False
 
@@ -76,7 +76,7 @@ class OccGrid3D:
         """
         indices = self.getIndicesAt(world_coords)
         if indices == None:
-            raise IndexError("The requested world coordinates do not refer to any cell in the occupancy grid")
+            raise IndexError(f"The requested world coordinates {world_coords} do not refer to any cell in the occupancy grid with origin {self.origin} and dimensions {self.dimensions}")
         else:
             return self.isCellOccupied(indices)
     
