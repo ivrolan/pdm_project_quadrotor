@@ -160,20 +160,22 @@ def scale_3d_matrix_values(matrix, scale_factor):
 
     return scaled_matrix
    
-def rrt(graph, occ_grid):
-    
-    "Pick a random point"
-    numPoints = 10
-    
-    randX = np.random.uniform(0, LENGTH)
-    randY = np.random.uniform(0, WIDTH)
-    randZ = np.random.uniform(0, HEIGHT)
+def rrt(graph, occ_grid, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    min_space = occ_grid.origin
+    max_space = min_space + occ_grid.dimensions
+
+    randX = np.random.uniform(min_space[0], max_space[0])
+    randY = np.random.uniform(min_space[1], max_space[1])
+    randZ = np.random.uniform(min_space[2], max_space[2])
     
     newNode = Node(randX, randY,randZ)
     
     nearestNode = graph.findNearestNode(randX, randY, randZ)
     
-    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=numPoints):
+    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
         graph.addNodetoExistingNode(nearestNode, newNode)
         
         
