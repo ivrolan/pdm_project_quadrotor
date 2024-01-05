@@ -9,6 +9,8 @@ from scenarios import randomScenario, treeScenario, wallScenario
 # import our own rrt library
 import rrt 
 
+from pybullet_utils import plotGraph
+
 env = CtrlAviary(gui=True)
 duration_sec = 3
 PYB_CLIENT = env.getPyBulletClient()
@@ -44,6 +46,9 @@ graph.draw(min_bound, max_bound)
 
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
+
+plotGraph(graph)
+
 for i in range(0, int(duration_sec*env.CTRL_FREQ)):
     env.render()
     #env.step(15000*np.array([[1., 1., 1., 1.]]))
