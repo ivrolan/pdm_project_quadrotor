@@ -16,7 +16,7 @@ from scipy.ndimage import zoom
 LENGTH = 80
 HEIGHT = 80
 WIDTH = 80
-GOAL_THRESHOLD = 5
+GOAL_THRESHOLD = 1
 
 class Node:
     
@@ -26,6 +26,7 @@ class Node:
         self.z = z
         self.parent = None
         self.children = []
+        self.cost = 0
 
 
 class Graph:
@@ -33,7 +34,7 @@ class Graph:
     "Class which is the whole RRT graph"
     def __init__(self, start, goal):
         
-        self.nodeArray = []
+        self.nodeArray = np.array([])
         self.edgeArray = []
         self.start = Node(start[0], start[1], start[2])
         self.addNode(self.start)
@@ -43,7 +44,9 @@ class Graph:
     
     def addNode(self, node):
         
-        self.nodeArray.append(node)
+        #self.nodeArray.append(node)
+        self.nodeArray = np.append(self.nodeArray, node)
+        #print(self.nodeArray)
     
     def addEdge(self, nodeInGraph, nodeToAdd):
         
@@ -56,23 +59,40 @@ class Graph:
         
         nodeInGraph.children.append(nodeToAdd)
         nodeToAdd.parent = nodeInGraph
+        
+        
+        # Making it rrt*
+        
+        nodeToAdd.cost += nodeInGraph.cost
+        # calculate distance between them
+        nodeToAdd.cost += np.sqrt((nodeToAdd.x - nodeInGraph.x)**2 + (nodeToAdd.y -nodeInGraph.y)**2 + (nodeToAdd.z - nodeInGraph.z)**2)
+        
+        
         self.addNode(nodeToAdd)
         self.addEdge(nodeInGraph, nodeToAdd)
+        
+
+        
+
     
-    def findNearestNode(self, x, y, z):
+    def findNearestNode(self, newNode):
         minDis = 10000000
         nearestNode = Node(0,0,0)
         
         for node in self.nodeArray:
             
-            distance = np.sqrt((node.x - x)**2 + (node.y -y)**2 + (node.z - z)**2)
+            distance = np.sqrt((node.x - newNode.x)**2 + (node.y -newNode.y)**2 + (node.z - newNode.z)**2)
             
             if distance < (minDis):
                 minDis = distance
                 nearestNode = node
+                
+        
+
             
             
         return nearestNode
+    
     def checkCollision(self, node1 : Node, node2: Node, obs, num_points=10) -> bool:
         """
         Check the path between node1 and node2 taking node2 as endpoint.
@@ -92,6 +112,7 @@ class Graph:
                 return True
             
         return False
+    
     def getOptimalPath(self):
         
         flag = True
@@ -146,6 +167,62 @@ class Graph:
             ax.voxels(world_voxels, edgecolor='k')
             print("done")
         plt.show()
+        
+        
+        
+        
+    
+    def chooseParent(self, radius, centerNode):
+        
+        node_list = []
+        chosenNode = centerNode.parent
+        xCeil = centerNode.x + radius
+        xFloor = centerNode.x - radius
+        yCeil = centerNode.y + radius
+        yFloor = centerNode.y - radius
+        zCeil = centerNode.z + radius
+        zFloor = centerNode.z - radius
+        print("test")
+        
+        counter = 0
+        # choose parent
+        for node in self.nodeArray:
+            
+            if (xFloor <= node.x <= xCeil) and (yFloor <= node.y <= yCeil) and (zFloor <= node.z <= zCeil):
+                
+                travelCost = np.sqrt((centerNode.x - node.x)**2 + (centerNode.y -node.y)**2 + (centerNode.z - node.z)**2)
+                
+                if (node.cost + travelCost) < centerNode.cost:
+                    
+                    centerNode.parent = node
+                    centerNode.cost = node.cost + travelCost
+                    self.nodeArray[-1] = centerNode
+                    
+                    
+            counter += 1
+        
+
+        counter = 0
+
+    
+        #rewire graph
+        
+        for node in self.nodeArray:
+            
+            if (xFloor <= node.x <= xCeil) and (yFloor <= node.y <= yCeil) and (zFloor <= node.z <= zCeil):
+            
+                travelCost = np.sqrt((centerNode.x - node.x)**2 + (centerNode.y -node.y)**2 + (centerNode.z - node.z)**2)
+            
+                if  centerNode.cost + travelCost < node.cost:
+                
+                    node.parent = centerNode
+                    node.cost = centerNode.cost + travelCost
+                    self.nodeArray[counter] = node
+                
+            counter += 1
+            
+        
+        
 
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape
@@ -173,25 +250,33 @@ def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
     
     newNode = Node(randX, randY,randZ)
     
-    nearestNode = graph.findNearestNode(randX, randY, randZ)
+    nearestNode = graph.findNearestNode(newNode)
+    
+
     
     # extend from nearestNode with a fixed step
-    nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
-    norm_vec = np.array([randX, randY,randZ]) - nearest_vec
+    #nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
+    #norm_vec = np.array([randX, randY,randZ]) - nearest_vec
 
-    if np.linalg.norm(norm_vec) > step:
-        norm_vec = norm_vec / np.linalg.norm(norm_vec)
+    #if np.linalg.norm(norm_vec) > step:
+        #norm_vec = norm_vec / np.linalg.norm(norm_vec)
 
-        to_add_vec = nearest_vec + step * norm_vec
-        to_add_node = Node(to_add_vec[0], to_add_vec[1], to_add_vec[2])
-    else:
-        to_add_node = newNode
+        #to_add_vec = nearest_vec + step * norm_vec
+        #to_add_node = Node(to_add_vec[0], to_add_vec[1], to_add_vec[2])
+    #else:
+        #to_add_node = newNode
+        
 
-    if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
-        graph.addNodetoExistingNode(nearestNode, to_add_node)
+    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
+        
+        graph.addNodetoExistingNode(nearestNode, newNode)
+        
+        graph.chooseParent(3, newNode)
         
         
-        distanceToGoal = np.sqrt((to_add_node.x - graph.goal[0])**2 + (to_add_node.y - graph.goal[1])**2 + (to_add_node.z - graph.goal[2])**2)
+        
+        
+        distanceToGoal = np.sqrt((newNode.x - graph.goal[0])**2 + (newNode.y - graph.goal[1])**2 + (newNode.z - graph.goal[2])**2)
         if (distanceToGoal < goal_threshold):
             
             graph.goalReached = True
@@ -207,18 +292,23 @@ def main():
     
     start = [1,1,1]
     goal = [75, 75,75]
-
+    min_space = occ_grid.origin
+    max_space = min_space + occ_grid.dimensions
     
     graph = Graph(start, goal)
 
     
 
-    while graph.goalReached != True:
+    #while graph.goalReached != True:
         
-        rrt(graph, occ_grid)
+    #    rrt(graph, occ_grid, 10, 1)
+    
+    for i in range(0, 1000):
+        
+        rrt(graph, occ_grid, 10, 1)
           
 
-    graph.draw(obs=occ_grid)
+    graph.draw(min_space, max_space, obs=occ_grid)
     optimalNodes = graph.getOptimalPath()
     
     return 0
