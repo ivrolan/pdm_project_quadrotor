@@ -9,14 +9,58 @@ Useful utils for interacting with pybullet
 
 def vector_rotation_from_Z(v1, v2):
     # Ensure the vectors are normalized
-    initial_vector = [0, 0, 1.]
+    initial_vector = np.array([0, 0, 1.])
     target_vector = (v2 - v1) / np.linalg.norm(v2 - v1)
 
     # Calculate the rotation quaternion
-    rotation_quaternion = Rotation.from_rotvec(
-        np.cross(initial_vector, target_vector) + np.arccos(np.dot(initial_vector, target_vector)) * (np.cross(initial_vector, target_vector) / np.linalg.norm(np.cross(initial_vector, target_vector)))
-    ).as_quat()
-    return rotation_quaternion
+    rotation_quaternion = Rotation.align_vectors(target_vector.reshape(1,3), initial_vector.reshape(1,3))[0]
+    print(rotation_quaternion)
+    return rotation_quaternion.as_quat()
+
+def diff_to_vertical(p1 : np.array, p2 : np.array, angle_type = "euler"):
+
+    # compute the vector between points
+
+    v2 = p2 - p1
+
+    v1 = np.array([0, 0, 1])
+    if angle_type == "euler":
+        return euler_angles_between_vectors(v1, v2)
+    if angle_type == "quat":
+        return quat_between_vectors(v1, v2)
+    
+def euler_angles_between_vectors(v1, v2):
+    # Normalize the input vectors
+    v1 = v1 / np.linalg.norm(v1)
+    v2 = v2 / np.linalg.norm(v2)
+
+    # Calculate the rotation matrix that aligns v1 with v2
+    rotation_matrix = np.dot(v1.reshape(3, 1), v2.reshape(1, 3))
+
+    # Create a Rotation object from the rotation matrix
+    rotation = Rotation.from_matrix(rotation_matrix)
+    
+    # Extract Euler angles (in radians) from the Rotation object
+    euler_angles = rotation.as_euler('xyz', degrees=False)
+    return euler_angles
+
+def quat_between_vectors(v1, v2):
+    # Normalize the input vectors
+    v1 = v1 / np.linalg.norm(v1)
+    v2 = v2 / np.linalg.norm(v2)
+
+    # Calculate the rotation matrix that aligns v1 with v2
+    rotation_matrix = np.dot(v1.reshape(3, 1), v2.reshape(1, 3))
+
+    print(rotation_matrix)
+
+    # Create a Rotation object from the rotation matrix
+    rotation = Rotation.from_matrix(rotation_matrix)
+
+    # Extract Quat angles (in radians) from the Rotation object
+    quat_angles = rotation.as_quat()
+
+    return quat_angles
 
 def calculate_orientation_angles(v1, v2):
     dot_product = np.dot(v1, v2)
@@ -69,6 +113,7 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
     pos_list = []
     lengths_list = []
     rpy_list = []
+    euler_list = []
     quat_list = []
     for edge in graph.edgeArray:
         # compute midpoints
@@ -81,15 +126,21 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
         pos_list.append([x_pos, y_pos, z_pos])
         lengths_list.append(np.sqrt(np.sum((e[:,0] - e[:,1])**2)))
 
-        # rpy = calculate_orientation_angles(e[:,0].T, e[:,1].T)
-        # rpy[1] -= np.pi 
+        # rpy = calculate_orientation_angles( e[:,1] - e[:,0], np.array([0.,0.,1.]))
         # rpy_list.append(rpy)
 
         # quat = calculate_orientation_quaternion(e[:,0], e[:, 1])
         # quat_list.append(quat)
+        # euler_ang = diff_to_vertical(e[:,0], e[:,1])
+
+        # euler_list.append(euler_ang)
+
 
         quat = vector_rotation_from_Z(e[:,0], e[:,1])
         quat_list.append(quat)
+
+        # quat = diff_to_vertical(e[:,0], e[:,1], angle_type="quat")
+        # quat_list.append(quat)
 
     print("len pos_list:", len(pos_list))
     print("len lengths_list:", len(lengths_list))

@@ -21,7 +21,7 @@ max_bound = [8, 2, 2]
 
 
 
-scene_ids, occ_grid = treeScenario(15, min_bound, max_bound, size=0.25, using_sim=True)
+scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
 
 start = env.pos[0]
@@ -49,7 +49,9 @@ graph.draw(min_bound, max_bound)
 
 plotGraph(graph)
 
-for i in range(0, int(duration_sec*env.CTRL_FREQ)):
+# for i in range(0, int(duration_sec*env.CTRL_FREQ)):
+
+while 1:
     env.render()
     #env.step(15000*np.array([[1., 1., 1., 1.]]))
     time.sleep(1. / env.CTRL_FREQ)
