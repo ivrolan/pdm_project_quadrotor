@@ -80,7 +80,7 @@ class Graph:
         
         
         self.addNode(nodeToAdd)
-        self.addEdge(nodeInGraph, nodeToAdd)
+        #self.addEdge(nodeInGraph, nodeToAdd)
     
 
     
@@ -177,9 +177,15 @@ class Graph:
         ax.set_ylim([min_bound[1], max_bound[1]])
         #ax.set_zlim([min_bound[2], max_bound[2]])
 
-        for edge in self.edgeArray:
+        # for edge in self.edgeArray:
             
-            ax.plot(edge[0], edge[1], color='black')
+        #     ax.plot(edge[0], edge[1], color='black')
+        
+        for node in self.nodeArray[1:]:
+            
+            parent = node.parent
+            
+            ax.plot((node.pos[0], parent.pos[0]), (node.pos[1], parent.pos[1]), color='black')
             
         pathNodes = self.getPath()
         #print("test1")
@@ -236,8 +242,8 @@ class Graph:
         
         indexList = self.findCloseNodes(radius, centerNode)
         #print(indexList)
-        cost = 100000000000
-        bestIdx = 0
+        cost = centerNode.cost
+        bestIdx = -1
         
         for ind in indexList:
             
@@ -249,15 +255,14 @@ class Graph:
             if (travelCost + node.cost) < cost:
                 cost = cost
                 bestIdx = ind
-            else:
-                return centerNode
+                
             
-        
-        centerNode.cost = cost
-        centerNode.parent = self.nodeArray[bestIdx]
-        #print(centerNode.parent.pos)
-        
-        self.nodeArray[-1] = centerNode
+        if bestIdx == -1:
+            return centerNode
+        else:
+            centerNode.cost = cost
+            centerNode.parent = self.nodeArray[bestIdx]
+            self.nodeArray[-1] = centerNode
         
         return centerNode
             
@@ -283,6 +288,7 @@ class Graph:
                 
                 self.nodeArray[ind] = node
                 self.updateChildCosts(node)
+                self.addEdge(node.parent, node)
         
         
 
@@ -352,7 +358,7 @@ def main():
     
     #while graph.goalReached != True:
         
-    for i in range(0, 1500):
+    for i in range(0, 5000):
         
         rrt(graph, occ_grid, GOAL_THRESHOLD, 1)
 
