@@ -4,6 +4,9 @@ import pybullet as p
 import matplotlib.pyplot as plt
 
 from gym_pybullet_drones.envs.CtrlAviary import CtrlAviary
+from gym_pybullet_drones.utils.enums import DroneModel
+from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
+
 from scenarios import randomScenario, treeScenario, wallScenario
 
 # import our own rrt library
@@ -12,6 +15,10 @@ import rrt
 from pybullet_utils import plotGraph
 
 env = CtrlAviary(gui=True)
+
+# only test with 1 drone
+ctrl = DSLPIDControl(drone_model=DroneModel.CF2X)
+
 duration_sec = 3
 PYB_CLIENT = env.getPyBulletClient()
 startOrientation = p.getQuaternionFromEuler([0,0,0])
@@ -49,10 +56,35 @@ graph.draw(min_bound, max_bound)
 
 plotGraph(graph)
 
-# for i in range(0, int(duration_sec*env.CTRL_FREQ)):
 
+# invert path so we start from the beginning
+path = graph.getOptimalPath()[::-1]
+
+# convert the nodes to coordinates
+for i in range(len(path)):
+    path[i] = np.array([path[i].x, path[i].y, path[i].z])
+
+action = np.array([0.,0.,0.,0.]).reshape(1,4)
+next_wp_index = 0
+
+num_drones = 1
+INIT_RPYS = np.array([[0, 0, 0] for i in range(num_drones)])
+
+print("following")
 while 1:
     env.render()
-    #env.step(15000*np.array([[1., 1., 1., 1.]]))
+    
+    obs, reward, terminated, truncated, info = env.step(action)
+    print(obs)
+
+    action[0], _, _ = ctrl.computeControlFromState(control_timestep=env.CTRL_TIMESTEP,
+                                                                state=obs[0],
+                                                                # target_pos=np.hstack([TARGET_POS[wp_counters[j], 0:2], INIT_XYZS[j, 2]]),
+                                                                target_pos=path[next_wp_index],
+                                                                target_rpy=INIT_RPYS[0, :]
+                                                                )
+    if np.sqrt(np.sum((path[next_wp_index] - obs[0,:3])**2)) < 0.15 and next_wp_index < len(path):
+        next_wp_index += 1
+
     time.sleep(1. / env.CTRL_FREQ)
 env.close()
