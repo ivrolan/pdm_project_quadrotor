@@ -8,12 +8,12 @@ from gym_pybullet_drones.utils.enums import DroneModel
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.utils.utils import sync, str2bool
 
-from scenarios import randomScenario, treeScenario, wallScenario
+from scenarios import randomScenario, treeScenario, wallScenario, createWall
 
 # import our own rrt library
 import rrt 
 
-from pybullet_utils import plotGraph, createWall, inflate_obstacles_3d
+from pybullet_utils import plotGraph, inflate_obstacles_3d
 
 
 GUI = True
@@ -49,7 +49,7 @@ print("GOAL:", goal)
 
 graph = rrt.Graph(start, goal)
 # step < threshold!
-threshold = 0.3
+threshold = 0.5
 step = 0.2
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions

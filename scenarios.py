@@ -90,3 +90,45 @@ def wallScenario(distances: list, fill_factor: list, width : float, height : flo
                     ids.append(p.loadURDF("cube.urdf", [d, -width/2 + i*(size), j*(size)], orient, globalScaling=size, useFixedBase = True))
                     my_occ_grid.occupyCoords([[d, -width/2 + i*(size), j*(size)]])
     return ids, my_occ_grid
+
+
+def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
+    
+    wallsID = []
+    
+    rgba=[0.,0.,0.,0.5]
+    cubeHalfExtents = [width/2, height/2, depth/2]
+    visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents, rgbaColor=rgba)
+    
+    collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents)
+    
+
+    pos[0] += cubeHalfExtents[0]
+    pos[1] += cubeHalfExtents[1]
+    pos[2] += cubeHalfExtents[2]
+
+    bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
+                             basePosition=pos, baseOrientation=[0,0,0,1])
+    
+    pos[0] -= cubeHalfExtents[0]
+    pos[1] -= cubeHalfExtents[1]
+    pos[2] -= cubeHalfExtents[2]
+
+    origin = min_bound 
+    shape = np.array(max_bound) - np.array(min_bound)
+
+    xgoal = np.arange(pos[0], pos[0]+width, step )
+    ygoal = np.arange(pos[1], pos[1]+height, step)
+    zgoal = np.arange(pos[2], pos[2]+depth, step )
+    
+    my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
+    
+    # print(xgoal)
+    for i in xgoal:
+        for j in ygoal:
+            for k in zgoal:
+                # print(i,j,k)
+                my_occ_grid.occupyCoords((i, j, k))
+
+    
+    return bodyId, my_occ_grid

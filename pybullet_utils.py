@@ -17,7 +17,7 @@ def vector_rotation_from_Z(v1, v2):
 
     # Calculate the rotation quaternion
     rotation_quaternion = Rotation.align_vectors(target_vector.reshape(1,3), initial_vector.reshape(1,3))[0]
-    print(rotation_quaternion)
+    # print(rotation_quaternion)
     return rotation_quaternion.as_quat()
 
 def diff_to_vertical(p1 : np.array, p2 : np.array, angle_type = "euler"):
@@ -55,7 +55,7 @@ def quat_between_vectors(v1, v2):
     # Calculate the rotation matrix that aligns v1 with v2
     rotation_matrix = np.dot(v1.reshape(3, 1), v2.reshape(1, 3))
 
-    print(rotation_matrix)
+    # print(rotation_matrix)
 
     # Create a Rotation object from the rotation matrix
     rotation = Rotation.from_matrix(rotation_matrix)
@@ -115,8 +115,8 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
 
     pos_list = []
     lengths_list = []
-    rpy_list = []
-    euler_list = []
+    # rpy_list = []
+    # euler_list = []
     quat_list = []
     for edge in graph.edgeArray:
         # compute midpoints
@@ -145,10 +145,10 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
         # quat = diff_to_vertical(e[:,0], e[:,1], angle_type="quat")
         # quat_list.append(quat)
 
-    print("len pos_list:", len(pos_list))
-    print("len lengths_list:", len(lengths_list))
-    print("len rpy_list:", len(rpy_list))
-    print("len quat_list:", len(quat_list))
+    # print("len pos_list:", len(pos_list))
+    # print("len lengths_list:", len(lengths_list))
+    # print("len rpy_list:", len(rpy_list))
+    # print("len quat_list:", len(quat_list))
 
     bodiesId = []
     for i in range(len(pos_list)):
@@ -165,46 +165,6 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
 
     return bodiesId
 
-def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
-    
-    wallsID = []
-    
-    rgba=[0.,0.,0.,0.5]
-    cubeHalfExtents = [width/2, height/2, depth/2]
-    visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents, rgbaColor=rgba)
-    
-    collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents)
-    
-
-    pos[0] += cubeHalfExtents[0]
-    pos[1] += cubeHalfExtents[1]
-    pos[2] += cubeHalfExtents[2]
-
-    bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
-                             basePosition=pos, baseOrientation=[0,0,0,1])
-    
-    pos[0] -= cubeHalfExtents[0]
-    pos[1] -= cubeHalfExtents[1]
-    pos[2] -= cubeHalfExtents[2]
-
-    origin = min_bound 
-    shape = np.array(max_bound) - np.array(min_bound)
-
-    xgoal = np.arange(pos[0], pos[0]+width, step )
-    ygoal = np.arange(pos[1], pos[1]+height, step)
-    zgoal = np.arange(pos[2], pos[2]+depth, step )
-    
-    my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
-    
-    print(xgoal)
-    for i in xgoal:
-        for j in ygoal:
-            for k in zgoal:
-                print(i,j,k)
-                my_occ_grid.occupyCoords((i, j, k))
-
-    
-    return bodyId, my_occ_grid
 def inflate_obstacles_3d(grid, inflation_size):
     # Create a 3D structuring element (kernel)
     kernel = np.ones((inflation_size, inflation_size, inflation_size), dtype=int)
