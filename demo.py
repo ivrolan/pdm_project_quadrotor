@@ -15,7 +15,6 @@ import rrt
 
 from pybullet_utils import plotGraph
 
-
 GUI = True
 
 env = CtrlAviary(gui=GUI)
@@ -30,9 +29,7 @@ startOrientation = p.getQuaternionFromEuler([0,0,0])
 min_bound = [0, -2, 0]
 max_bound = [8, 2, 2]
 
-
-
-scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
+scene_ids, occ_grid = treeScenario(15, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
 
 start = env.pos[0]
@@ -51,14 +48,13 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 while graph.goalReached != True:
-
-    rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=50)
+    rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=50, GAUSSIAN=True)
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound)
-
+    graph.draw_line_samples()
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 

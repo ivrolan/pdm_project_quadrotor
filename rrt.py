@@ -39,8 +39,11 @@ class Graph:
         self.addNode(self.start)
         self.goal = goal
         self.goalReached = False
-        
-    
+
+        self.start_point = np.array([self.start.x, self.start.y, self.start.z])
+        self.straight_line = np.linspace(self.start_point, self.goal, 50)
+        self.gaussian_points = []
+
     def addNode(self, node):
         
         self.nodeArray.append(node)
@@ -147,6 +150,19 @@ class Graph:
             print("done")
         plt.show()
 
+    def draw_line_samples(self):
+        gauss_points = np.array(self.gaussian_points)
+        x_coords, y_coords, z_coords = self.straight_line[:, 0], self.straight_line[:, 1], self.straight_line[:, 2]
+        x_points, y_points, z_points = gauss_points[:, 0], gauss_points[:, 1], gauss_points[:, 2]
+
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111, projection='3d')
+        self.ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
+        self.ax.scatter(self.start_point[0], self.start_point[1], self.start_point[2], color='green', label='Start Point')
+        self.ax.scatter(self.goal[0], self.goal[1], self.goal[2], color='red', label='End Point')
+        self.ax.scatter(x_points, y_points, z_points, color='purple')
+        plt.show()
+
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape
     scaled_matrix = np.zeros((x * scale_factor, y * scale_factor, z * scale_factor), dtype=matrix.dtype)
@@ -160,22 +176,48 @@ def scale_3d_matrix_values(matrix, scale_factor):
 
     return scaled_matrix
    
-def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
+def random_sample(min_space, max_space):
+    randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
+    randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
+    randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
+    return randX, randY, randZ
+
+def line_gaussian_sample(graph, mean, covariance):
+
+    # sample random point from the straight line
+    random_line_point_id = np.random.choice(graph.straight_line.shape[0],1)
+    random_line_point = graph.straight_line[random_line_point_id][0]
+
+    # sample point based on Gaussian distribution based on this point on the line
+    gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, covariance)
+    graph.gaussian_points.append(np.array([gaussianX, gaussianY, gaussianZ]))
+    return gaussianX, gaussianY, gaussianZ
+
+def rrt(graph, occ_grid, goal_threshold, step, points_interp=20, GAUSSIAN=False):
     """
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
     min_space = occ_grid.origin
     max_space = min_space + occ_grid.dimensions
 
-    randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
-    randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
-    randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
-    
+    mean = 0
+    line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
+    covariance = np.eye(3)*0.05*line_magnitude
+
+    if not GAUSSIAN:
+        randX, randY, randZ = random_sample(min_space, max_space)
+    else:
+        randX, randY, randZ = line_gaussian_sample(graph, mean, covariance)
+        in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+        while not in_grid:
+            randX, randY, randZ = line_gaussian_sample(graph, mean, covariance)
+            in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+
     newNode = Node(randX, randY,randZ)
     
     nearestNode = graph.findNearestNode(randX, randY, randZ)
     
-    # extend from nearestNode with a fixed step
+    # extend from nearest Node with a fixed step
     nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
     norm_vec = np.array([randX, randY,randZ]) - nearest_vec
 
@@ -196,11 +238,6 @@ def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
             
             graph.goalReached = True
             
-    
-    
-
-
-
 def main():
     
     scene_ids, occ_grid = treeScenario(4, [0.,0.,0.], [80,80,80], size=10)
