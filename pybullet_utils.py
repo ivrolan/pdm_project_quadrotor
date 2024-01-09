@@ -17,6 +17,31 @@ def vector_rotation_from_Z(v1, v2):
     print(rotation_quaternion)
     return rotation_quaternion.as_quat()
 
+def my_vector_rotation_from_Z(p1, p2):
+
+    initial_vector = np.array([0, 0, 1.])
+    target_vector = (p2 - p1) / np.linalg.norm(p2 - p1)
+    
+    dot_product = np.dot(initial_vector, target_vector)
+    ang = np.arccos(np.clip(dot_product, -1.0, 1.0))
+    
+    print(ang)
+    
+    cross_vect = np.cross(initial_vector, target_vector)
+
+    q = np.zeros(4)
+    # xyz
+    q[:3] = (np.sin(ang/2.) * cross_vect)
+    # w
+    q[3] = np.cos(ang/2.)
+
+    # norm quat
+
+    q = q / np.linalg.norm(q)
+    print(q.shape)
+    return q.tolist()
+
+
 def diff_to_vertical(p1 : np.array, p2 : np.array, angle_type = "euler"):
 
     # compute the vector between points
@@ -136,7 +161,7 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
         # euler_list.append(euler_ang)
 
 
-        quat = vector_rotation_from_Z(e[:,0], e[:,1])
+        quat = my_vector_rotation_from_Z(e[:,0], e[:,1])
         quat_list.append(quat)
 
         # quat = diff_to_vertical(e[:,0], e[:,1], angle_type="quat")
