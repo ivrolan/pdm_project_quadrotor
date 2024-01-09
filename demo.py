@@ -15,7 +15,6 @@ import rrt
 
 from pybullet_utils import plotGraph, inflate_obstacles_3d
 
-
 GUI = True
 
 env = CtrlAviary(gui=GUI)
@@ -64,20 +63,20 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 while graph.goalReached != True:
+    # rrt.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
+    rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=50, covariance="varying")
 
-    rrt.rrt(graph, occ_grid, threshold, step, points_interp=10)
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound)
-
+    graph.draw_line_samples()
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 
 if GUI:
     plotGraph(graph)
-
 
 # invert path so we start from the beginning
 path = graph.getOptimalPath()[::-1]
@@ -102,7 +101,7 @@ controller_start = time.time_ns()
 time_controller = -1
 for i in range(0, int(duration_sec*env.CTRL_FREQ)):
     obs, reward, terminated, truncated, info = env.step(action)
-    print(obs)
+    # print(obs)
 
     action[0], _, _ = ctrl.computeControlFromState(control_timestep=env.CTRL_TIMESTEP,
                                                                 state=obs[0],
