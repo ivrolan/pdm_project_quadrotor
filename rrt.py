@@ -39,8 +39,12 @@ class Graph:
         self.addNode(self.start)
         self.goal = goal
         self.goalReached = False
-        
-    
+
+        self.start_point = np.array([self.start.x, self.start.y, self.start.z])
+        self.straight_line = np.linspace(self.start_point, self.goal, 50)
+        self.covariance = np.eye(3)*0.001 # very small value, gets overwritten base on use case later
+        self.gaussian_points = []
+
     def addNode(self, node):
         
         self.nodeArray.append(node)
@@ -87,7 +91,7 @@ class Graph:
         
         
         for i in range(num_points-1, 0, -1):
-            print(i)
+            # print(i)
             if (obs.isCoordOccupied((x_path[i], y_path[i], z_path[i]))):
                 return True
             
@@ -147,6 +151,19 @@ class Graph:
             print("done")
         plt.show()
 
+    def draw_line_samples(self):
+        gauss_points = np.array(self.gaussian_points)
+        x_coords, y_coords, z_coords = self.straight_line[:, 0], self.straight_line[:, 1], self.straight_line[:, 2]
+        x_points, y_points, z_points = gauss_points[:, 0], gauss_points[:, 1], gauss_points[:, 2]
+
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111, projection='3d')
+        self.ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
+        self.ax.scatter(self.start_point[0], self.start_point[1], self.start_point[2], color='green', label='Start Point')
+        self.ax.scatter(self.goal[0], self.goal[1], self.goal[2], color='red', label='End Point')
+        self.ax.scatter(x_points, y_points, z_points, color='purple')
+        plt.show()
+
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape
     scaled_matrix = np.zeros((x * scale_factor, y * scale_factor, z * scale_factor), dtype=matrix.dtype)
@@ -160,24 +177,30 @@ def scale_3d_matrix_values(matrix, scale_factor):
 
     return scaled_matrix
    
-def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
-    """
-        Based on a graph, sample points withing the space of occ_grid and expand the graph
-    """
-    min_space = occ_grid.origin
-    max_space = min_space + occ_grid.dimensions
-
+def random_sample(min_space, max_space):
     randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
     randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
     randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
+    return randX, randY, randZ
+
+def line_gaussian_sample(graph, mean, covariance):
+
+    # sample random point from the straight line
+    random_line_point_id = np.random.choice(graph.straight_line.shape[0],1)
+    random_line_point = graph.straight_line[random_line_point_id][0]
+
+    # sample point based on Gaussian distribution based on this point on the line
+    gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, covariance)
+    return gaussianX, gaussianY, gaussianZ
+
+def rrt_nodes(graph, x, y, z,occ_grid, goal_threshold, step, points_interp=20):
+    newNode = Node(x,y,z)
     
-    newNode = Node(randX, randY,randZ)
+    nearestNode = graph.findNearestNode(x, y, z)
     
-    nearestNode = graph.findNearestNode(randX, randY, randZ)
-    
-    # extend from nearestNode with a fixed step
+    # extend from nearest Node with a fixed step
     nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
-    norm_vec = np.array([randX, randY,randZ]) - nearest_vec
+    norm_vec = np.array([x,y,z]) - nearest_vec
 
     if np.linalg.norm(norm_vec) > step:
         norm_vec = norm_vec / np.linalg.norm(norm_vec)
@@ -190,16 +213,48 @@ def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
     if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
         graph.addNodetoExistingNode(nearestNode, to_add_node)
         
-        
         distanceToGoal = np.sqrt((to_add_node.x - graph.goal[0])**2 + (to_add_node.y - graph.goal[1])**2 + (to_add_node.z - graph.goal[2])**2)
         if (distanceToGoal < goal_threshold):
             
             graph.goalReached = True
-            
     
-    
+    return graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp)
+        
+
+def rrt_star(graph, occ_grid, goal_threshold, step, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    min_space = occ_grid.origin
+    max_space = min_space + occ_grid.dimensions
+
+    randX, randY, randZ = random_sample(min_space, max_space)
+
+    _ = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
+def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    mean = 0
+    if covariance == "line":
+        line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
+        graph.covariance = np.eye(3)*0.05*line_magnitude
+    elif covariance == "varying":
+        pass
+
+    randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
+    in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    while not in_grid:
+        randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
+        in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    graph.gaussian_points.append(np.array([randX, randY, randZ]))
 
 
+    collision_check = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+    
+    if collision_check and covariance == "varying":
+        graph.covariance *= 1.1   
 
 def main():
     
