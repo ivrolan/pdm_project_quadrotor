@@ -42,6 +42,7 @@ class Graph:
 
         self.start_point = np.array([self.start.x, self.start.y, self.start.z])
         self.straight_line = np.linspace(self.start_point, self.goal, 50)
+        self.covariance = np.eye(3)*0.001 # very small value, gets overwritten base on use case later
         self.gaussian_points = []
 
     def addNode(self, node):
@@ -90,7 +91,7 @@ class Graph:
         
         
         for i in range(num_points-1, 0, -1):
-            print(i)
+            # print(i)
             if (obs.isCoordOccupied((x_path[i], y_path[i], z_path[i]))):
                 return True
             
@@ -190,36 +191,16 @@ def line_gaussian_sample(graph, mean, covariance):
 
     # sample point based on Gaussian distribution based on this point on the line
     gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, covariance)
-    graph.gaussian_points.append(np.array([gaussianX, gaussianY, gaussianZ]))
     return gaussianX, gaussianY, gaussianZ
 
-def rrt(graph, occ_grid, goal_threshold, step, points_interp=20, GAUSSIAN=False):
-    """
-        Based on a graph, sample points withing the space of occ_grid and expand the graph
-    """
-    min_space = occ_grid.origin
-    max_space = min_space + occ_grid.dimensions
-
-    mean = 0
-    line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
-    covariance = np.eye(3)*0.05*line_magnitude
-
-    if not GAUSSIAN:
-        randX, randY, randZ = random_sample(min_space, max_space)
-    else:
-        randX, randY, randZ = line_gaussian_sample(graph, mean, covariance)
-        in_grid = occ_grid.inOccGrid((randX, randY, randZ))
-        while not in_grid:
-            randX, randY, randZ = line_gaussian_sample(graph, mean, covariance)
-            in_grid = occ_grid.inOccGrid((randX, randY, randZ))
-
-    newNode = Node(randX, randY,randZ)
+def rrt_nodes(graph, x, y, z,occ_grid, goal_threshold, step, points_interp=20):
+    newNode = Node(x,y,z)
     
-    nearestNode = graph.findNearestNode(randX, randY, randZ)
+    nearestNode = graph.findNearestNode(x, y, z)
     
     # extend from nearest Node with a fixed step
     nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
-    norm_vec = np.array([randX, randY,randZ]) - nearest_vec
+    norm_vec = np.array([x,y,z]) - nearest_vec
 
     if np.linalg.norm(norm_vec) > step:
         norm_vec = norm_vec / np.linalg.norm(norm_vec)
@@ -232,12 +213,49 @@ def rrt(graph, occ_grid, goal_threshold, step, points_interp=20, GAUSSIAN=False)
     if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
         graph.addNodetoExistingNode(nearestNode, to_add_node)
         
-        
         distanceToGoal = np.sqrt((to_add_node.x - graph.goal[0])**2 + (to_add_node.y - graph.goal[1])**2 + (to_add_node.z - graph.goal[2])**2)
         if (distanceToGoal < goal_threshold):
             
             graph.goalReached = True
-            
+    
+    return graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp)
+        
+
+def rrt_star(graph, occ_grid, goal_threshold, step, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    min_space = occ_grid.origin
+    max_space = min_space + occ_grid.dimensions
+
+    randX, randY, randZ = random_sample(min_space, max_space)
+
+    _ = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
+def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    mean = 0
+    if covariance == "line":
+        line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
+        graph.covariance = np.eye(3)*0.05*line_magnitude
+    elif covariance == "varying":
+        pass
+
+    randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
+    in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    while not in_grid:
+        randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
+        in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    graph.gaussian_points.append(np.array([randX, randY, randZ]))
+
+
+    collision_check = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+    
+    if collision_check and covariance == "varying":
+        graph.covariance *= 1.1   
+
 def main():
     
     scene_ids, occ_grid = treeScenario(4, [0.,0.,0.], [80,80,80], size=10)
