@@ -3,6 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from rrt import Graph
+import occupancy_grid
 """
 Useful utils for interacting with pybullet
 """
@@ -162,7 +163,7 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
 
     return bodiesId
 
-def createWall(pos, width, height, depth):
+def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
     
     wallsID = []
     
@@ -172,10 +173,26 @@ def createWall(pos, width, height, depth):
     
     collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=[width/2, height/2, depth/2])
     
-    bodyId = p.createMultiBody(baseMass=1, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
+    bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
                              basePosition=pos, baseOrientation=[0,0,0,1])
     
-    #wallsID.append(visualShapeId, collisionShapeId)
     
-    return bodyId
+    origin = min_bound 
+    shape = np.array(max_bound) - np.array(min_bound)
+
+    xgoal = np.arange(pos[0], pos[0]+width, step)
+    ygoal = np.arange(pos[1], pos[1]+height, step)
+    zgoal = np.arange(pos[2], pos[2]+depth, step)
+    
+    my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
+    
+    
+    for i in xgoal:
+        for j in ygoal:
+            for k in zgoal:
+                print(i,j,k)
+                my_occ_grid.occupyCoords((i, j, k))
+
+    
+    return bodyId, my_occ_grid
     
