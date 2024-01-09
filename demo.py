@@ -13,7 +13,7 @@ from scenarios import randomScenario, treeScenario, wallScenario
 # import our own rrt library
 import rrt 
 
-from pybullet_utils import plotGraph
+from pybullet_utils import plotGraph, createWall
 
 
 GUI = True
@@ -30,9 +30,9 @@ startOrientation = p.getQuaternionFromEuler([0,0,0])
 min_bound = [0, -2, 0]
 max_bound = [8, 2, 2]
 
+createWall([1,1,1], 10, 10, 10)
 
-
-scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
+scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
 
 start = env.pos[0]

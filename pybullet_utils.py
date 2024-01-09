@@ -161,3 +161,21 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
         bodiesId.append(bodyId)
 
     return bodiesId
+
+def createWall(pos, width, height, depth):
+    
+    wallsID = []
+    
+    rgba=[0.,0.,0.,0.5]
+    
+    visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=[width/2, height/2, depth/2], rgbaColor=rgba)
+    
+    collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=[width/2, height/2, depth/2])
+    
+    bodyId = p.createMultiBody(baseMass=1, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
+                             basePosition=pos, baseOrientation=[0,0,0,1])
+    
+    #wallsID.append(visualShapeId, collisionShapeId)
+    
+    return bodyId
+    
