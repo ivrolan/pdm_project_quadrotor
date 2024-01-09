@@ -42,8 +42,8 @@ occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
 occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
-#goal = [7., np.random.uniform(-2, 2), 1.]
-goal = [2, 0, 2]
+goal = [7., np.random.uniform(-2, 2), 1.]
+#goal = [2, 0, 2]
 print("GOAL:", goal)
 # compute path with rrt 
 
