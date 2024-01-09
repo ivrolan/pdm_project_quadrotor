@@ -92,10 +92,13 @@ def wallScenario(distances: list, fill_factor: list, width : float, height : flo
     return ids, my_occ_grid
 
 
-def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
-    
-    wallsID = []
-    
+# def corridorScenario()
+
+#     addCube
+#     addCube
+
+def addCube(pos, width, height, depth, occ_grid: occupancy_grid.OccGrid3D):
+     
     rgba=[0.,0.,0.,0.5]
     cubeHalfExtents = [width/2, height/2, depth/2]
     visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents, rgbaColor=rgba)
@@ -114,21 +117,41 @@ def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = 
     pos[1] -= cubeHalfExtents[1]
     pos[2] -= cubeHalfExtents[2]
 
-    origin = min_bound 
-    shape = np.array(max_bound) - np.array(min_bound)
+    xgoal = np.arange(pos[0], pos[0]+width, occ_grid.resolution)
+    ygoal = np.arange(pos[1], pos[1]+height,occ_grid.resolution)
+    zgoal = np.arange(pos[2], pos[2]+depth, occ_grid.resolution)
 
-    xgoal = np.arange(pos[0], pos[0]+width, step )
-    ygoal = np.arange(pos[1], pos[1]+height, step)
-    zgoal = np.arange(pos[2], pos[2]+depth, step )
-    
-    my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
-    
-    # print(xgoal)
+     # print(xgoal)
     for i in xgoal:
         for j in ygoal:
             for k in zgoal:
                 # print(i,j,k)
-                my_occ_grid.occupyCoords((i, j, k))
+                occ_grid.occupyCoords((i, j, k))
 
+    return bodyId
+
+def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
     
+    # wallsID = []
+    
+    origin = min_bound 
+    shape = np.array(max_bound) - np.array(min_bound)
+
+    my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
+    
+    bodyId = addCube(pos, width, height, depth, my_occ_grid)
+
     return bodyId, my_occ_grid
+
+def createCubes(pos: list, width: list, height: list, depth: list, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
+
+    origin = min_bound 
+    shape = np.array(max_bound) - np.array(min_bound)
+
+    my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
+    
+    cubesIds = []
+    for i in range(len(pos)):
+        cubesIds.append(addCube(pos[i], width[i], height[i], depth[i], my_occ_grid))
+    
+    return cubesIds, my_occ_grid

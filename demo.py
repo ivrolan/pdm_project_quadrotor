@@ -8,7 +8,7 @@ from gym_pybullet_drones.utils.enums import DroneModel
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.utils.utils import sync, str2bool
 
-from scenarios import randomScenario, treeScenario, wallScenario, createWall
+from scenarios import randomScenario, treeScenario, wallScenario, createWall, createCubes
 
 # import our own rrt library
 import rrt 
@@ -30,7 +30,14 @@ startOrientation = p.getQuaternionFromEuler([0,0,0])
 min_bound = [0, 0, 0]
 max_bound = [8, 3, 3]
 
-wallIds, occ_grid = createWall([3,0,0], 2, 1, 1, min_bound=min_bound, max_bound=max_bound)
+# same pos for both
+pos_list = 2 * [[3,0,0]]
+width_list = [2, 1]
+height_list = [1, 2]
+depth_list = [1, 1]
+
+
+wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
 
 occ_grid.plot()
 # make the occ_grid bigger by 1 cell
