@@ -143,10 +143,10 @@ class Graph:
         
         if obs != None:
             print("drawing voxels")
-            print(obs.occ_grid.shape)
+            #print(obs.occ_grid.shape)
             
             world_voxels = scale_3d_matrix_values(obs.occ_grid, obs.resolution)
-            print(world_voxels.shape)
+            #print(world_voxels.shape)
             ax.voxels(world_voxels, edgecolor='k')
             print("done")
         plt.show()

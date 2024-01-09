@@ -3,6 +3,9 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 from rrt import Graph
+import occupancy_grid
+from scipy.ndimage import convolve
+
 """
 Useful utils for interacting with pybullet
 """
@@ -14,7 +17,7 @@ def vector_rotation_from_Z(v1, v2):
 
     # Calculate the rotation quaternion
     rotation_quaternion = Rotation.align_vectors(target_vector.reshape(1,3), initial_vector.reshape(1,3))[0]
-    print(rotation_quaternion)
+    # print(rotation_quaternion)
     return rotation_quaternion.as_quat()
 
 def diff_to_vertical(p1 : np.array, p2 : np.array, angle_type = "euler"):
@@ -52,7 +55,7 @@ def quat_between_vectors(v1, v2):
     # Calculate the rotation matrix that aligns v1 with v2
     rotation_matrix = np.dot(v1.reshape(3, 1), v2.reshape(1, 3))
 
-    print(rotation_matrix)
+    # print(rotation_matrix)
 
     # Create a Rotation object from the rotation matrix
     rotation = Rotation.from_matrix(rotation_matrix)
@@ -112,8 +115,8 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
 
     pos_list = []
     lengths_list = []
-    rpy_list = []
-    euler_list = []
+    # rpy_list = []
+    # euler_list = []
     quat_list = []
     for edge in graph.edgeArray:
         # compute midpoints
@@ -142,10 +145,10 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
         # quat = diff_to_vertical(e[:,0], e[:,1], angle_type="quat")
         # quat_list.append(quat)
 
-    print("len pos_list:", len(pos_list))
-    print("len lengths_list:", len(lengths_list))
-    print("len rpy_list:", len(rpy_list))
-    print("len quat_list:", len(quat_list))
+    # print("len pos_list:", len(pos_list))
+    # print("len lengths_list:", len(lengths_list))
+    # print("len rpy_list:", len(rpy_list))
+    # print("len quat_list:", len(quat_list))
 
     bodiesId = []
     for i in range(len(pos_list)):
@@ -161,3 +164,14 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
         bodiesId.append(bodyId)
 
     return bodiesId
+
+def inflate_obstacles_3d(grid, inflation_size):
+    # Create a 3D structuring element (kernel)
+    kernel = np.ones((inflation_size, inflation_size, inflation_size), dtype=int)
+
+    # Use 3D convolution to inflate the obstacles
+    print(grid.shape, kernel.shape)
+    inflated_grid = convolve(grid, weights=kernel, mode='constant', cval=0)
+
+
+    return inflated_grid

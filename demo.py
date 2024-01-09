@@ -8,12 +8,12 @@ from gym_pybullet_drones.utils.enums import DroneModel
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.utils.utils import sync, str2bool
 
-from scenarios import randomScenario, treeScenario, wallScenario
+from scenarios import randomScenario, treeScenario, wallScenario, createWall, createCubes
 
 # import our own rrt library
 import rrt 
 
-from pybullet_utils import plotGraph
+from pybullet_utils import plotGraph, inflate_obstacles_3d
 
 GUI = True
 
@@ -26,21 +26,36 @@ duration_sec = 15
 PYB_CLIENT = env.getPyBulletClient()
 startOrientation = p.getQuaternionFromEuler([0,0,0])
 
-min_bound = [0, -2, 0]
-max_bound = [8, 2, 2]
+min_bound = [0, 0, 0]
+max_bound = [8, 3, 3]
 
-scene_ids, occ_grid = treeScenario(15, min_bound, max_bound, size=0.25, using_sim=True)
+# same pos for both
+pos_list = 2 * [[3,0,0]]
+width_list = [2, 1]
+height_list = [1, 2]
+depth_list = [1, 1]
+
+
+wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
+
+occ_grid.plot()
+# make the occ_grid bigger by 1 cell
+occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
+
+
+#scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
-
+occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
 goal = [7., np.random.uniform(-2, 2), 1.]
+#goal = [2, 0, 2]
 print("GOAL:", goal)
-# compute path with rrt
+# compute path with rrt 
 
 graph = rrt.Graph(start, goal)
 # step < threshold!
-threshold = 0.8
+threshold = 0.5
 step = 0.2
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions
