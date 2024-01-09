@@ -42,7 +42,7 @@ class Graph:
 
         self.start_point = np.array([self.start.x, self.start.y, self.start.z])
         self.straight_line = np.linspace(self.start_point, self.goal, 50)
-        self.covariance = np.eye(3)*0.001 # very small value, gets overwritten base on use case later
+        self.covariance = np.eye(3)*0.1 # very small value, gets overwritten base on use case later
         self.gaussian_points = []
 
     def addNode(self, node):
@@ -255,25 +255,24 @@ def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_
     
     if collision_check and covariance == "varying":
         graph.covariance *= 1.1   
-
+        print("collision!!!")
+        
 def main():
     
     scene_ids, occ_grid = treeScenario(4, [0.,0.,0.], [80,80,80], size=10)
     
     start = [1,1,1]
     goal = [75, 75,75]
+    min_space = occ_grid.origin
+    max_space = min_space + occ_grid.dimensions
 
-    
     graph = Graph(start, goal)
-
-    
 
     while graph.goalReached != True:
         
-        rrt(graph, occ_grid)
+        rrt_star(graph, occ_grid, 10, 1)
           
-
-    graph.draw(obs=occ_grid)
+    graph.draw(min_space, max_space, obs=occ_grid)
     optimalNodes = graph.getOptimalPath()
     
     return 0

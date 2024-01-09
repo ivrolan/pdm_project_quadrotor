@@ -64,7 +64,7 @@ max_space = min_space + occ_grid.dimensions
 start = time.time_ns()
 while graph.goalReached != True:
     # rrt.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
-    rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=50, covariance="varying")
+    rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
 
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
