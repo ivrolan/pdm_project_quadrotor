@@ -4,6 +4,8 @@ from scipy.spatial.transform import Rotation
 
 from rrt import Graph
 import occupancy_grid
+from scipy.ndimage import convolve
+
 """
 Useful utils for interacting with pybullet
 """
@@ -168,25 +170,33 @@ def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = 
     wallsID = []
     
     rgba=[0.,0.,0.,0.5]
+    cubeHalfExtents = [width/2, height/2, depth/2]
+    visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents, rgbaColor=rgba)
     
-    visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=[width/2, height/2, depth/2], rgbaColor=rgba)
+    collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents)
     
-    collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=[width/2, height/2, depth/2])
-    
+
+    pos[0] += cubeHalfExtents[0]
+    pos[1] += cubeHalfExtents[1]
+    pos[2] += cubeHalfExtents[2]
+
     bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
                              basePosition=pos, baseOrientation=[0,0,0,1])
     
-    
+    pos[0] -= cubeHalfExtents[0]
+    pos[1] -= cubeHalfExtents[1]
+    pos[2] -= cubeHalfExtents[2]
+
     origin = min_bound 
     shape = np.array(max_bound) - np.array(min_bound)
 
-    xgoal = np.arange(pos[0], pos[0]+width, step)
+    xgoal = np.arange(pos[0], pos[0]+width, step )
     ygoal = np.arange(pos[1], pos[1]+height, step)
-    zgoal = np.arange(pos[2], pos[2]+depth, step)
+    zgoal = np.arange(pos[2], pos[2]+depth, step )
     
     my_occ_grid = occupancy_grid.OccGrid3D(shape, origin, step)
     
-    
+    print(xgoal)
     for i in xgoal:
         for j in ygoal:
             for k in zgoal:
@@ -195,4 +205,13 @@ def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = 
 
     
     return bodyId, my_occ_grid
-    
+def inflate_obstacles_3d(grid, inflation_size):
+    # Create a 3D structuring element (kernel)
+    kernel = np.ones((inflation_size, inflation_size, inflation_size), dtype=int)
+
+    # Use 3D convolution to inflate the obstacles
+    print(grid.shape, kernel.shape)
+    inflated_grid = convolve(grid, weights=kernel, mode='constant', cval=0)
+
+
+    return inflated_grid

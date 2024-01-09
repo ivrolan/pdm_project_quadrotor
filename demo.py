@@ -13,7 +13,7 @@ from scenarios import randomScenario, treeScenario, wallScenario
 # import our own rrt library
 import rrt 
 
-from pybullet_utils import plotGraph, createWall
+from pybullet_utils import plotGraph, createWall, inflate_obstacles_3d
 
 
 GUI = True
@@ -30,7 +30,12 @@ startOrientation = p.getQuaternionFromEuler([0,0,0])
 min_bound = [0, 0, 0]
 max_bound = [8, 3, 3]
 
-wallIds, occ_grid = createWall([3,0,1], 2, 2, 2, min_bound=min_bound, max_bound=max_bound)
+wallIds, occ_grid = createWall([3,0,0], 2, 1, 1, min_bound=min_bound, max_bound=max_bound)
+
+occ_grid.plot()
+# make the occ_grid bigger by 1 cell
+occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
+
 
 #scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
@@ -52,7 +57,7 @@ max_space = min_space + occ_grid.dimensions
 start = time.time_ns()
 while graph.goalReached != True:
 
-    rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=50)
+    rrt.rrt(graph, occ_grid, threshold, step, points_interp=10)
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
