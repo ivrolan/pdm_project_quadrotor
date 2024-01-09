@@ -30,20 +30,21 @@ startOrientation = p.getQuaternionFromEuler([0,0,0])
 min_bound = [0, 0, 0]
 max_bound = [8, 3, 3]
 
-wallIds, occ_grid = createWall([3,0,1], 2, 2, 2, min_bound=min_bound, max_bound=max_bound)
+wallIds, occ_grid = createWall([2,0,1], 1, 1, 1, min_bound=min_bound, max_bound=max_bound)
 
 #scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
 occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
-goal = [7., np.random.uniform(-2, 2), 1.]
+#goal = [7., np.random.uniform(-2, 2), 1.]
+goal = [2, 0, 2]
 print("GOAL:", goal)
-# compute path with rrt
+# compute path with rrt 
 
 graph = rrt.Graph(start, goal)
 # step < threshold!
-threshold = 0.8
+threshold = 0.3
 step = 0.2
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions
