@@ -33,7 +33,18 @@ class Node:
         self.children = []
         self.cost = 0
 
-
+    def __eq__(self, __value: object) -> bool:
+        if __value == None:
+            return False
+        if self.pos[0] != __value.pos[0]:
+            return False
+        if self.pos[1] != __value.pos[1]:
+            return False
+        if self.pos[2] != __value.pos[2]:
+            return False
+        return True
+    def __ne__(self, __value: object) -> bool:
+        return not self.__eq__(__value)
 class Graph:
     
     "Class which is the whole RRT graph"
@@ -148,7 +159,7 @@ class Graph:
         while flag != False:
             pathNodes.append(goalNode)
             print(goalNode.pos)
-            if (goalNode.pos == self.start.pos):
+            if (goalNode == self.start):
                 
                 flag = False
                 
@@ -214,7 +225,7 @@ class Graph:
 
         for idx, node in np.ndenumerate(self.nodeArray):
             
-            if ((xFloor <= node.pos[0] <= xCeil) and (yFloor <= node.pos[1] <= yCeil) and (zFloor <= node.pos[2] <= zCeil) and (node.pos != centerNode.pos)):
+            if ((xFloor <= node.pos[0] <= xCeil) and (yFloor <= node.pos[1] <= yCeil) and (zFloor <= node.pos[2] <= zCeil) and (node != centerNode)):
                 
                 indexList.append(idx)
         
@@ -291,7 +302,22 @@ class Graph:
                     self.updateChildCosts(node)
                     self.addEdge(node.parent, node)
                     
-                    
+    def extend(self, node1 : Node, node2: Node, step):
+        extendedNode = Node(np.array([0., 0.]))
+
+        # get direction
+        direction = np.array(node2.pos) - np.array(node1.pos)
+
+        # norm and scale by step if norm of direction is greater than step
+        if np.linalg.norm(direction) >= step:
+            extension = step * direction / np.linalg.norm(direction)
+        else:
+            return node2
+        
+        extendedNode = Node(np.array(node1.pos) + extension)
+
+        return extendedNode
+    
     def rrt(self, occ_grid, goal_threshold, step, points_interp=20):
         """
             Based on a graph, sample points withing the space of occ_grid and expand the graph
@@ -309,6 +335,9 @@ class Graph:
         newNode = Node([randX, randY, randZ])
         
         nearestNode = self.findNearestNode(newNode)
+
+        # sample the point with a fixed step size
+        newNode = self.extend(nearestNode, newNode, step)
 
         if not self.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
             
@@ -398,18 +427,20 @@ def main():
     ax.set_ylim([min_space[1], max_space[1]])
     ax.set_zlim([min_space[2], max_space[2]])
         
-    for i in range(0, 500):
+    for i in range(0, 1000):
         
-        graph.rrt(occ_grid, GOAL_THRESHOLD, 1)
         #if graph.goalReached == True:
         #    break
-        graph.draw(min_space, max_space, ax)
-        plt.pause(0.05)
+        #b graph.draw(min_space, max_space, ax)
+        graph.rrt(occ_grid, 10, 1)
+        # plt.pause(0.05)
         
-    plt.show()
+    
+    print("finished")
 
     print(len(graph.nodeArray))
-    #graph.draw(min_space, max_space, obs=occ_grid)
+    graph.draw(min_space, max_space, ax)
+    plt.show()
     #optimalNodes = graph.getOptimalPath()
     
     return 0
