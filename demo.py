@@ -35,7 +35,6 @@ width_list = [2, 1]
 height_list = [1, 2]
 depth_list = [1, 1]
 
-
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
 
 occ_grid.plot()
@@ -62,16 +61,17 @@ max_space = min_space + occ_grid.dimensions
 
 ## start of the path planning
 start = time.time_ns()
-while graph.goalReached != True:
-    # rrt.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
-    rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
-
+# while graph.goalReached != True :
+while graph.goalReached != True :
+    # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
+    # rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
+    rrt.informed_rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound)
-    graph.draw_line_samples()
+    # graph.draw_line_samples()
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 

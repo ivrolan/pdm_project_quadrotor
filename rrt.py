@@ -44,6 +44,8 @@ class Graph:
         self.straight_line = np.linspace(self.start_point, self.goal, 50)
         self.covariance = np.eye(3)*0.1 # very small value, gets overwritten base on use case later
         self.gaussian_points = []
+        self.collisioncheck = False
+        self.iteration_counter = 0 # testing purposes, maybe remove later
 
     def addNode(self, node):
         
@@ -210,18 +212,16 @@ def rrt_nodes(graph, x, y, z,occ_grid, goal_threshold, step, points_interp=20):
     else:
         to_add_node = newNode
 
-    if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
+    graph.collisioncheck = graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp)
+
+    if not graph.collisioncheck:
         graph.addNodetoExistingNode(nearestNode, to_add_node)
         
         distanceToGoal = np.sqrt((to_add_node.x - graph.goal[0])**2 + (to_add_node.y - graph.goal[1])**2 + (to_add_node.z - graph.goal[2])**2)
         if (distanceToGoal < goal_threshold):
-            
             graph.goalReached = True
-    
-    return graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp)
-        
 
-def rrt_star(graph, occ_grid, goal_threshold, step, points_interp=20):
+def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
     """
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
@@ -230,7 +230,62 @@ def rrt_star(graph, occ_grid, goal_threshold, step, points_interp=20):
 
     randX, randY, randZ = random_sample(min_space, max_space)
 
-    _ = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+    rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
+def informed_rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
+    """
+    Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    if not graph.goalReached:
+        min_space = occ_grid.origin
+        max_space = min_space + occ_grid.dimensions
+        randX, randY, randZ = random_sample(min_space, max_space)
+        rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+        graph.iteration_counter += 1
+        print(graph.iteration_counter)
+    else:
+        graph.iteration_counter += 1
+        in_ellipsoid = False
+        while not in_ellipsoid:
+            min_space = occ_grid.origin
+            max_space = min_space + occ_grid.dimensions
+            randX, randY, randZ = random_sample(min_space, max_space)
+            path = graph.getOptimalPath()[::-1] # the best path
+
+            # convert path to xyz cooridnates
+            for i in range(len(path)):
+                path[i] = np.array([path[i].x, path[i].y, path[i].z])
+
+            path_length = 0
+            for i in range(len(path) - 1):
+                path_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
+
+            sampled_point = np.array([randX, randY, randZ])
+            graph_goal = np.array(graph.goal)
+            graph_start = np.array([graph.start.x, graph.start.y, graph.start.z])
+            # compute distance from sampled point to start and to goal (compare with characteristic distance of an ellipsoid)
+            distance_to_goal = np.linalg.norm(graph_goal - sampled_point)
+            print("distance_to_goal", distance_to_goal)
+            distance_to_start = np.linalg.norm(graph_start - sampled_point)
+            print("distance to start is", distance_to_start)
+            sum_distance = distance_to_start + distance_to_goal
+            print("PATH LENGTH", path_length)
+            if sum_distance > path_length:
+                in_ellipsoid = False
+            else:
+                in_ellipsoid = True
+
+        rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
+        # while not in_ellipsoid:
+            # length of the path
+            # distanceToGoal + distance to start = D
+            # if D > length_path:
+                # in_ellispoid = False
+            # else:
+                # in_ellipsoid = True
+                # rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
 
 def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_interp=20):
     """
@@ -250,12 +305,12 @@ def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_
         in_grid = occ_grid.inOccGrid((randX, randY, randZ))
     graph.gaussian_points.append(np.array([randX, randY, randZ]))
 
-
-    collision_check = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+    rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
     
-    if collision_check and covariance == "varying":
+    if graph.collisioncheck and covariance == "varying":
         graph.covariance *= 1.1   
-        print("collision!!!")
+
+
         
 def main():
     
@@ -270,7 +325,7 @@ def main():
 
     while graph.goalReached != True:
         
-        rrt_star(graph, occ_grid, 10, 1)
+        rrt(graph, occ_grid, 10, 1)
           
     graph.draw(min_space, max_space, obs=occ_grid)
     optimalNodes = graph.getOptimalPath()
