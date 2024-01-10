@@ -36,20 +36,21 @@ width_list = [2, 1]
 height_list = [1, 2]
 depth_list = [1, 1]
 
-
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
+# scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
 
 occ_grid.plot()
 # make the occ_grid bigger by 1 cell
 occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
 
 
-#scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
 occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
-goal = [7., 1, 1.]
+
+goal = [7., 2., 1.]
+
 #goal = [2, 0, 2]
 print("GOAL:", goal)
 # compute path with rrt 
@@ -63,18 +64,19 @@ max_space = min_space + occ_grid.dimensions
 
 ## start of the path planning
 start = time.time_ns()
-while graph.goalReached != True:
-    rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
-    #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
+while graph.goalReached != True :
+# while graph.iteration_counter < 10000:
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
+    rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
+    # rrt.informed_rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 
-print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound)
-    #graph.draw_line_samples()
+    # graph.draw_line_samples()
+
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 

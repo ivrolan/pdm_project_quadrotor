@@ -42,10 +42,11 @@ class Graph:
         self.goalReached = False
 
         self.start_point = np.array([self.start.x, self.start.y, self.start.z])
-        self.goal_point = np.array([self.goal.x, self.goal.y, self.goal.z])
-        self.straight_line = np.linspace(self.start_point, self.goal_point, 50)
-        self.covariance = np.eye(3)*0.1 # very small value, gets overwritten base on use case later
+        self.straight_line = np.linspace(self.start_point, self.goal, 50)
+        self.covariance = np.eye(3)*0.01 # very small value, gets overwritten base on use case later
         self.gaussian_points = []
+        self.collisioncheck = False
+        self.iteration_counter = 0 # testing purposes, maybe remove later
 
     def addNode(self, node):
         
@@ -224,7 +225,7 @@ class Graph:
         self.ax = self.fig.add_subplot(111, projection='3d')
         self.ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
         self.ax.scatter(self.start_point[0], self.start_point[1], self.start_point[2], color='green', label='Start Point')
-        self.ax.scatter(self.goal_point[0], self.goal_point[1], self.goal_point[2], color='red', label='End Point')
+        self.ax.scatter(self.goal[0], self.goal[1], self.goal[2], color='red', label='End Point')
         self.ax.scatter(x_points, y_points, z_points, color='purple')
         plt.show()
 
@@ -276,16 +277,14 @@ def rrt_nodes(graph, x, y, z,occ_grid, goal_threshold, step, points_interp=20):
         to_add_node = newNode
         
 
-    if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
+    graph.collisioncheck = graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp)
+
+    if not graph.collisioncheck:
         graph.addNodetoExistingNode(nearestNode, to_add_node)
         
         distanceToGoal = np.sqrt((newNode.x - graph.goal.x)**2 + (newNode.y - graph.goal.y)**2 + (newNode.z - graph.goal.z)**2)
         if (distanceToGoal < goal_threshold):
-            
             graph.goalReached = True
-    
-    return graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp)
-        
 
 def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
     """
@@ -296,33 +295,78 @@ def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
 
     randX, randY, randZ = random_sample(min_space, max_space)
 
-    _ = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
-def  rrt_star():
-    pass
+    rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
+def informed_rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
+    """
+    Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    if not graph.goalReached:
+        min_space = occ_grid.origin
+        max_space = min_space + occ_grid.dimensions
+        randX, randY, randZ = random_sample(min_space, max_space)
+        rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+        graph.iteration_counter += 1
+        print(graph.iteration_counter)
+    else:
+        graph.iteration_counter += 1
+        in_ellipsoid = False
+        while not in_ellipsoid:
+            min_space = occ_grid.origin
+            max_space = min_space + occ_grid.dimensions
+            randX, randY, randZ = random_sample(min_space, max_space)
+            path = graph.getOptimalPath()[::-1] # the best path
+
+            # convert path to xyz cooridnates
+            for i in range(len(path)):
+                path[i] = np.array([path[i].x, path[i].y, path[i].z])
+
+            path_length = 0
+            for i in range(len(path) - 1):
+                path_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
+
+            sampled_point = np.array([randX, randY, randZ])
+            graph_goal = np.array(graph.goal)
+            graph_start = np.array([graph.start.x, graph.start.y, graph.start.z])
+            # compute distance from sampled point to start and to goal (compare with characteristic distance of an ellipsoid)
+            distance_to_goal = np.linalg.norm(graph_goal - sampled_point)
+            print("distance_to_goal", distance_to_goal)
+            distance_to_start = np.linalg.norm(graph_start - sampled_point)
+            print("distance to start is", distance_to_start)
+            sum_distance = distance_to_start + distance_to_goal
+            print("PATH LENGTH", path_length)
+            if sum_distance > path_length:
+                in_ellipsoid = False
+            else:
+                in_ellipsoid = True
+
+        rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
+
 def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_interp=20):
     """
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
     mean = 0
+    line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
     if covariance == "line":
-        line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
         graph.covariance = np.eye(3)*0.05*line_magnitude
     elif covariance == "varying":
-        pass
+        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.05*line_magnitude)
 
     randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
     in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    counter = 0
     while not in_grid:
         randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
         in_grid = occ_grid.inOccGrid((randX, randY, randZ))
     graph.gaussian_points.append(np.array([randX, randY, randZ]))
 
+    rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
 
-    collision_check = rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
-    
-    if collision_check and covariance == "varying":
+    if graph.collisioncheck and covariance == "varying":
         graph.covariance *= 1.1   
-        print("collision!!!")
+
+
         
 def main():
     
