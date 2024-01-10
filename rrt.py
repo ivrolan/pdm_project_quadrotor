@@ -42,7 +42,7 @@ class Graph:
 
         self.start_point = np.array([self.start.x, self.start.y, self.start.z])
         self.straight_line = np.linspace(self.start_point, self.goal, 50)
-        self.covariance = np.eye(3)*0.1 # very small value, gets overwritten base on use case later
+        self.covariance = np.eye(3)*0.01 # very small value, gets overwritten base on use case later
         self.gaussian_points = []
         self.collisioncheck = False
         self.iteration_counter = 0 # testing purposes, maybe remove later
@@ -98,6 +98,7 @@ class Graph:
                 return True
             
         return False
+    
     def getOptimalPath(self):
         
         flag = True
@@ -292,21 +293,25 @@ def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
     mean = 0
+    line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
     if covariance == "line":
-        line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
         graph.covariance = np.eye(3)*0.05*line_magnitude
     elif covariance == "varying":
-        pass
+        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.05*line_magnitude)
 
     randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
     in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    counter = 0
     while not in_grid:
         randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
         in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+        counter += 1
+        print(counter)
     graph.gaussian_points.append(np.array([randX, randY, randZ]))
 
     rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
-    
+    graph.draw_line_samples()
+
     if graph.collisioncheck and covariance == "varying":
         graph.covariance *= 1.1   
 
