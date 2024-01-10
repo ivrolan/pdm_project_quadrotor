@@ -65,7 +65,9 @@ start = time.time_ns()
 while graph.goalReached != True:
     # rrt.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
     rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
+    # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 
+print("GOAL:", graph.goal.x, graph.goal.y, graph.goal.z, "reached")
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 

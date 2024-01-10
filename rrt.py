@@ -38,11 +38,12 @@ class Graph:
         self.edgeArray = []
         self.start = Node(start[0], start[1], start[2])
         self.addNode(self.start)
-        self.goal = goal
+        self.goal = Node(goal[0], goal[1], goal[2])
         self.goalReached = False
 
         self.start_point = np.array([self.start.x, self.start.y, self.start.z])
-        self.straight_line = np.linspace(self.start_point, self.goal, 50)
+        self.goal_point = np.array([self.goal.x, self.goal.y, self.goal.z])
+        self.straight_line = np.linspace(self.start_point, self.goal_point, 50)
         self.covariance = np.eye(3)*0.1 # very small value, gets overwritten base on use case later
         self.gaussian_points = []
 
@@ -73,10 +74,6 @@ class Graph:
         self.addNode(nodeToAdd)
         self.addEdge(nodeInGraph, nodeToAdd)
         
-
-        
-
-    
     def findNearestNode(self, newNode):
         minDis = 10000000
         nearestNode = Node(0,0,0)
@@ -227,22 +224,10 @@ class Graph:
         self.ax = self.fig.add_subplot(111, projection='3d')
         self.ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
         self.ax.scatter(self.start_point[0], self.start_point[1], self.start_point[2], color='green', label='Start Point')
-        self.ax.scatter(self.goal[0], self.goal[1], self.goal[2], color='red', label='End Point')
+        self.ax.scatter(self.goal_point[0], self.goal_point[1], self.goal_point[2], color='red', label='End Point')
         self.ax.scatter(x_points, y_points, z_points, color='purple')
         plt.show()
 
-    def draw_line_samples(self):
-        gauss_points = np.array(self.gaussian_points)
-        x_coords, y_coords, z_coords = self.straight_line[:, 0], self.straight_line[:, 1], self.straight_line[:, 2]
-        x_points, y_points, z_points = gauss_points[:, 0], gauss_points[:, 1], gauss_points[:, 2]
-
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, projection='3d')
-        self.ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
-        self.ax.scatter(self.start_point[0], self.start_point[1], self.start_point[2], color='green', label='Start Point')
-        self.ax.scatter(self.goal[0], self.goal[1], self.goal[2], color='red', label='End Point')
-        self.ax.scatter(x_points, y_points, z_points, color='purple')
-        plt.show()
 
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape
@@ -276,10 +261,7 @@ def line_gaussian_sample(graph, mean, covariance):
 def rrt_nodes(graph, x, y, z,occ_grid, goal_threshold, step, points_interp=20):
     newNode = Node(x,y,z)
     
-    nearestNode = graph.findNearestNode(x, y, z)
     nearestNode = graph.findNearestNode(newNode)
-    
-
     
     # extend from nearest Node with a fixed step
     nearest_vec = np.array([nearestNode.x, nearestNode.y, nearestNode.z])
@@ -297,7 +279,7 @@ def rrt_nodes(graph, x, y, z,occ_grid, goal_threshold, step, points_interp=20):
     if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
         graph.addNodetoExistingNode(nearestNode, to_add_node)
         
-        distanceToGoal = np.sqrt((newNode.x - graph.goal[0])**2 + (newNode.y - graph.goal[1])**2 + (newNode.z - graph.goal[2])**2)
+        distanceToGoal = np.sqrt((newNode.x - graph.goal.x)**2 + (newNode.y - graph.goal.y)**2 + (newNode.z - graph.goal.z)**2)
         if (distanceToGoal < goal_threshold):
             
             graph.goalReached = True

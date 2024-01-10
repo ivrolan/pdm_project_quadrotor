@@ -318,7 +318,7 @@ class Graph:
 
         return extendedNode
     
-    def rrt(self, occ_grid, goal_threshold, step, points_interp=20):
+    def rrt_star(self, occ_grid, goal_threshold, step, points_interp=20):
         """
             Based on a graph, sample points withing the space of occ_grid and expand the graph
         """
