@@ -11,7 +11,8 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 from scenarios import randomScenario, treeScenario, wallScenario, createWall, createCubes
 
 # import our own rrt library
-import rrt 
+#import rrt 
+import rrtStar
 
 from pybullet_utils import plotGraph, inflate_obstacles_3d
 
@@ -48,12 +49,12 @@ occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
 occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
-goal = [7., np.random.uniform(-2, 2), 1.]
+goal = [7., 1, 1.]
 #goal = [2, 0, 2]
 print("GOAL:", goal)
 # compute path with rrt 
 
-graph = rrt.Graph(start, goal)
+graph = rrtStar.Graph(start, goal)
 # step < threshold!
 threshold = 0.5
 step = 0.2
@@ -63,17 +64,17 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 while graph.goalReached != True:
-    # rrt.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
-    rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
+    rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
+    #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 
-print("GOAL:", graph.goal.x, graph.goal.y, graph.goal.z, "reached")
+print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound)
-    graph.draw_line_samples()
+    #graph.draw_line_samples()
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 
@@ -85,7 +86,7 @@ path = graph.getOptimalPath()[::-1]
 
 # convert the nodes to coordinates
 for i in range(len(path)):
-    path[i] = np.array([path[i].x, path[i].y, path[i].z])
+    path[i] = np.array([path[i].pos[0], path[i].pos[1], path[i].pos[2]])
 
 action = np.array([0.,0.,0.,0.]).reshape(1,4)
 next_wp_index = 0

@@ -171,16 +171,16 @@ class Graph:
         
     
     
-    def draw(self, min_bound: tuple, max_bound:tuple, ax, obs=None):
+    def draw(self, min_bound: tuple, max_bound:tuple, obs=None):
         
         "Draws the graph"
         
         print("drawing")
-        # fig = plt.figure()
-        # ax = fig.add_subplot(projection='3d')
-        # ax.set_xlim([min_bound[0], max_bound[0]])
-        # ax.set_ylim([min_bound[1], max_bound[1]])
-        # ax.set_zlim([min_bound[2], max_bound[2]])
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        ax.set_xlim([min_bound[0], max_bound[0]])
+        ax.set_ylim([min_bound[1], max_bound[1]])
+        ax.set_zlim([min_bound[2], max_bound[2]])
 
         # for edge in self.edgeArray:
             
@@ -207,7 +207,7 @@ class Graph:
             print(world_voxels.shape)
             ax.voxels(world_voxels, edgecolor='k')
             print("done")
-        #plt.show()
+        plt.show()
         
         
     
