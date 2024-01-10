@@ -305,12 +305,9 @@ def rrt_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_
     while not in_grid:
         randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
         in_grid = occ_grid.inOccGrid((randX, randY, randZ))
-        counter += 1
-        print(counter)
     graph.gaussian_points.append(np.array([randX, randY, randZ]))
 
     rrt_nodes(graph, randX, randY, randZ,occ_grid, goal_threshold, step, points_interp)
-    graph.draw_line_samples()
 
     if graph.collisioncheck and covariance == "varying":
         graph.covariance *= 1.1   

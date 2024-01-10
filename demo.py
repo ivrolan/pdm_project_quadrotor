@@ -35,8 +35,8 @@ width_list = [2, 1]
 height_list = [1, 2]
 depth_list = [1, 1]
 
-# wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
-scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
+wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
+# scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
 
 occ_grid.plot()
 # make the occ_grid bigger by 1 cell
@@ -47,7 +47,7 @@ occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
 occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
-goal = [7., np.random.uniform(-2, 2), 1.]
+goal = [7., 2., 1.]
 #goal = [2, 0, 2]
 print("GOAL:", goal)
 # compute path with rrt 
