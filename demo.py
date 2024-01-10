@@ -62,7 +62,7 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 # while graph.goalReached != True :
-while graph.goalReached != True :
+while graph.iteration_counter < 10000:
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
     # rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
     rrt.informed_rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
