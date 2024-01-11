@@ -425,10 +425,6 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
 
     randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
     in_grid = occ_grid.inOccGrid((randX, randY, randZ))
-    while not in_grid:
-        randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
-        in_grid = occ_grid.inOccGrid((randX, randY, randZ))
-    graph.gaussian_points.append(np.array([randX, randY, randZ]))
 
     newNode = Node([randX,randY,randZ])
 
@@ -436,7 +432,9 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
 
     newNode = graph.extend(nearestNode, newNode, step)
 
-    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
+    if in_grid and not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
+
+        graph.gaussian_points.append(np.array([randX, randY, randZ])) # for visualization purposes
 
         graph.addNodetoExistingNode(nearestNode, newNode)
 
