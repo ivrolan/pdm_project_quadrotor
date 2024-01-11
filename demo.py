@@ -23,7 +23,7 @@ env = CtrlAviary(gui=GUI)
 # only test with 1 drone
 ctrl = DSLPIDControl(drone_model=DroneModel.CF2X)
 
-duration_sec = 15
+duration_sec = 20
 PYB_CLIENT = env.getPyBulletClient()
 startOrientation = p.getQuaternionFromEuler([0,0,0])
 
@@ -64,7 +64,7 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 while graph.goalReached != True:
-    rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 1., points_interp=50)
+    rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
     #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 

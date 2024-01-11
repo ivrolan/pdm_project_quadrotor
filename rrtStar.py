@@ -359,7 +359,7 @@ class Graph:
             
             self.addNodetoExistingNode(nearestNode, newNode)
             
-            updatedNode = self.chooseParent(3, newNode, occ_grid)
+            updatedNode = self.chooseParent(rewire_rad, newNode, occ_grid)
             #print(newNode)
             self.rewire(rewire_rad, updatedNode, occ_grid)
             
