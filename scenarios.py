@@ -145,7 +145,7 @@ def createWall(pos, width, height, depth, min_bound = [-2., -2, 0], max_bound = 
 
     return bodyId, my_occ_grid
 
-def createCubes(pos: list, width: list, height: list, depth: list, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2):
+def createCubes(pos: list, width: list, height: list, depth: list, min_bound = [-2., -2, 0], max_bound = [2., 2., 2.], step=0.2, using_sim=False):
 
     origin = min_bound 
     shape = np.array(max_bound) - np.array(min_bound)
@@ -154,6 +154,6 @@ def createCubes(pos: list, width: list, height: list, depth: list, min_bound = [
     
     cubesIds = []
     for i in range(len(pos)):
-        cubesIds.append(addCube(pos[i], width[i], height[i], depth[i], my_occ_grid, using_sim=False))
+        cubesIds.append(addCube(pos[i], width[i], height[i], depth[i], my_occ_grid, using_sim=using_sim))
     
     return cubesIds, my_occ_grid

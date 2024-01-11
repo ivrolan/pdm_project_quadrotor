@@ -28,15 +28,36 @@ PYB_CLIENT = env.getPyBulletClient()
 startOrientation = p.getQuaternionFromEuler([0,0,0])
 
 min_bound = [0, 0, 0]
-max_bound = [8, 3, 3]
+max_bound = [10, 10, 5]
 
-# same pos for both
-pos_list = 2 * [[3,0,0]]
-width_list = [2, 1]
-height_list = [1, 2]
-depth_list = [1, 1]
+"Corridor Scenario Creation "
+"Uncomment for corridor scenario"
 
-wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
+pos_list = [[3,0,0], [1,6,0]]
+width_list = [5, 8]
+height_list = [5, 4]
+depth_list = [5, 5]
+goal = [6, 1, 4]
+
+"Wall Scenario Creation"
+"Uncomment for wall scenario"
+
+# pos_list = [[3, 3, 0],[3, 0, 0]]
+# width_list = [1, 1]
+# height_list = [3, 3]
+# depth_list = [5, 5]
+# goal = [6, 1, 4]
+
+"Bridge Scenario Creation"
+"Uncomment for bridge scenario"
+
+#pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+#width_list = [3.5, 3, 3.5]
+#height_list = [5, 5, 5]
+#depth_list = [5, 2.5, 5]
+# goal = [6, 1, 4]
+
+wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound, using_sim=True)
 # scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
 
 # occ_grid.plot()
