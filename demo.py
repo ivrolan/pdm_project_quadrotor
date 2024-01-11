@@ -89,7 +89,7 @@ for i in range(len(path)):
 
 if GUI:
     print("Path is:", path)    
-    #plotGraph(graph)
+    plotGraph(graph)
     plotPointsPath(path, rgba=[1.,0.,0., 0.8])
 action = np.array([0.,0.,0.,0.]).reshape(1,4)
 next_wp_index = 0
