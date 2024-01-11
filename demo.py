@@ -77,14 +77,14 @@ print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
-    graph.draw(min_bound, max_bound)
+    graph.draw(min_bound, max_bound, threshold)
     # graph.draw_line_samples()
     
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 
 # invert path so we start from the beginning
-path = graph.getPath()[::-1]
+path = graph.getPath(threshold)[::-1]
 
 # convert the nodes to coordinates
 for i in range(len(path)):
@@ -149,4 +149,4 @@ for i in range(len(path) - 1):
     total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
 
 print("Total length of the path:", total_length)
-print("Cost of bestNode:", graph.findBestNode().cost)
+print("Cost of bestNode:", graph.findBestNode(threshold).cost)
