@@ -22,15 +22,36 @@ from pybullet_utils import plotGraph, inflate_obstacles_3d
 
 ITERATIONS = 1000
 N_TESTS = 5
+
 min_bound = [0, 0, 0]
-max_bound = [8, 8, 5]
+max_bound = [10, 10, 5]
 
-# same pos for both
-pos_list = [[3, 0, 0]]
-width_list = [1]
-height_list = [6]
-depth_list = [5]
+"Corridor Scenario Creation "
+"Uncomment for corridor scenario"
 
+pos_list = [[3,0,0], [1,6,0]]
+width_list = [5, 8]
+height_list = [5, 4]
+depth_list = [5, 5]
+goal = [6, 1, 4]
+
+"Wall Scenario Creation"
+"Uncomment for wall scenario"
+
+# pos_list = [[3, 3, 0],[3, 0, 0]]
+# width_list = [1, 1]
+# height_list = [3, 3]
+# depth_list = [5, 5]
+# goal = [6, 1, 4]
+
+"Bridge Scenario Creation"
+"Uncomment for bridge scenario"
+
+#pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+#width_list = [3.5, 3, 3.5]
+#height_list = [5, 5, 5]
+#depth_list = [5, 2.5, 5]
+# goal = [6, 1, 4]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
 
@@ -43,7 +64,6 @@ occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
 
 start = [1.,1.,1.]
 # print("START:", start)
-goal = [6, 1, 4]
 #goal = [7., np.random.uniform(-2, 2), 1.]
 #goal = [2, 0, 2]
 # print("GOAL:", goal)

@@ -475,7 +475,7 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
         if (distanceToGoal < goal_threshold):
 
             graph.goalReached = True
-            print("Node array:", graph.nodeArray)
+            # print("Node array:", graph.nodeArray)
     elif covariance_type == "varying":
         graph.covariance*=1.1 
         # print("collision")            
