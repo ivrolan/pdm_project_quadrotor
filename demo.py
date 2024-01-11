@@ -63,8 +63,11 @@ max_space = min_space + occ_grid.dimensions
 
 ## start of the path planning
 start = time.time_ns()
-while graph.goalReached != True:
+
+for i in range(1000):
+#while graph.goalReached != True:
     rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
+    #rrtStar.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, covariance="varying", points_interp=20)
     #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 
@@ -72,8 +75,8 @@ print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
-if GUI:
-    graph.draw(min_bound, max_bound)
+#if GUI:
+    #graph.draw(min_bound, max_bound)
     #graph.draw_line_samples()
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
@@ -82,7 +85,7 @@ if GUI:
     plotGraph(graph)
 
 # invert path so we start from the beginning
-path = graph.getOptimalPath()[::-1]
+path = graph.getPath()[::-1]
 
 # convert the nodes to coordinates
 for i in range(len(path)):
@@ -140,3 +143,5 @@ for i in range(len(path) - 1):
     total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
 
 print("Total length of the path:", total_length)
+
+print(path)

@@ -57,6 +57,12 @@ class Graph:
         self.goal = Node(goal)
         self.goalReached = False
         
+        self.start_point = np.array([self.start.pos[0], self.start.pos[1], self.start.pos[2]])
+        self.goal_point = np.array([self.goal.pos[0], self.goal.pos[1], self.goal.pos[2]])
+        self.straight_line = np.linspace(self.start_point, self.goal_point, 50)
+        self.covariance = np.eye(3)*0.1 # very small value, gets overwritten base on use case later
+        self.gaussian_points = []
+        
     def calcDist(self, node1, node2):
         
         "Calculate distance between the two nodes"
@@ -140,7 +146,9 @@ class Graph:
                 
                 bestDist = goalDist
                 bestIdx  = idx
-        
+                
+                
+        print(self.nodeArray[bestIdx])
         return self.nodeArray[bestIdx]
             
             
@@ -157,6 +165,8 @@ class Graph:
         parent2 = goalNode.parent
         
         while flag != False:
+            if (goalNode == None):
+                break
             pathNodes.append(goalNode)
             print(goalNode.pos)
             if (goalNode == self.start):
@@ -339,13 +349,14 @@ class Graph:
         # sample the point with a fixed step size
         newNode = self.extend(nearestNode, newNode, step)
 
+
         if not self.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
             
             self.addNodetoExistingNode(nearestNode, newNode)
             
-            updatedNode = self.chooseParent(3, newNode, occ_grid)
+            updatedNode = self.chooseParent(2, newNode, occ_grid)
             #print(newNode)
-            self.rewire(3, updatedNode, occ_grid)
+            self.rewire(2, updatedNode, occ_grid)
             
             
             distanceToGoal = self.calcDist(updatedNode, self.goal)
@@ -353,7 +364,72 @@ class Graph:
                 
                 self.goalReached = True
         
+def line_gaussian_sample(graph, mean, covariance):
+
+    # sample random point from the straight line
+    random_line_point_id = np.random.choice(graph.straight_line.shape[0],1)
+    random_line_point = graph.straight_line[random_line_point_id][0]
+
+    # sample point based on Gaussian distribution based on this point on the line
+    gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, covariance)
+    return gaussianX, gaussianY, gaussianZ
+
+    
         
+def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, covariance: str, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    mean = 0
+    if covariance == "line":
+        line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
+        graph.covariance = np.eye(3)*0.05*line_magnitude
+    elif covariance == "varying":
+        pass
+
+    randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
+    in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    while not in_grid:
+        randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
+        in_grid = occ_grid.inOccGrid((randX, randY, randZ))
+    graph.gaussian_points.append(np.array([randX, randY, randZ]))
+    
+    newNode = Node([randX,randY,randZ])
+    
+    nearestNode = graph.findNearestNode(newNode)
+    
+    # extend from nearest Node with a fixed step
+    nearest_vec = np.array([nearestNode.pos[0], nearestNode.pos[1], nearestNode.pos[2]])
+    norm_vec = np.array([randX,randY,randZ]) - nearest_vec
+
+    if np.linalg.norm(norm_vec) > step:
+        norm_vec = norm_vec / np.linalg.norm(norm_vec)
+
+        to_add_vec = nearest_vec + step * norm_vec
+        to_add_node = Node(to_add_vec)
+    else:
+        to_add_node = newNode
+        
+
+    if not graph.checkCollision(nearestNode, to_add_node, occ_grid, num_points=points_interp):
+        
+        graph.addNodetoExistingNode(nearestNode, to_add_node)
+        
+        updatedNode = graph.chooseParent(3, newNode, occ_grid)
+        
+        graph.rewire(3, updatedNode, occ_grid)
+        
+        distanceToGoal = np.sqrt((newNode.pos[0] - graph.goal.pos[0])**2 + (newNode.pos[1] - graph.goal.pos[1])**2 + (newNode.pos[2] - graph.goal.pos[2])**2)
+        if (distanceToGoal < goal_threshold):
+            
+            graph.goalReached = True
+            print("Node array:", graph.nodeArray)
+    elif covariance == "varying":
+        
+        graph.covariance*=1.1 
+        print("collision")
+                
+
 
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape
