@@ -97,25 +97,27 @@ def wallScenario(distances: list, fill_factor: list, width : float, height : flo
 #     addCube
 #     addCube
 
-def addCube(pos, width, height, depth, occ_grid: occupancy_grid.OccGrid3D):
+def addCube(pos, width, height, depth, occ_grid: occupancy_grid.OccGrid3D, using_sim=True):
      
     rgba=[0.,0.,0.,0.5]
-    cubeHalfExtents = [width/2, height/2, depth/2]
-    visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents, rgbaColor=rgba)
-    
-    collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents)
-    
+    bodyId = None
+    if using_sim:
+        cubeHalfExtents = [width/2, height/2, depth/2]
+        visualShapeId = p.createVisualShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents, rgbaColor=rgba)
+        
+        collisionShapeId = p.createCollisionShape(shapeType=p.GEOM_BOX, halfExtents=cubeHalfExtents)
+        
 
-    pos[0] += cubeHalfExtents[0]
-    pos[1] += cubeHalfExtents[1]
-    pos[2] += cubeHalfExtents[2]
+        pos[0] += cubeHalfExtents[0]
+        pos[1] += cubeHalfExtents[1]
+        pos[2] += cubeHalfExtents[2]
 
-    bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
-                             basePosition=pos, baseOrientation=[0,0,0,1])
-    
-    pos[0] -= cubeHalfExtents[0]
-    pos[1] -= cubeHalfExtents[1]
-    pos[2] -= cubeHalfExtents[2]
+        bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=collisionShapeId, baseVisualShapeIndex=visualShapeId,
+                                basePosition=pos, baseOrientation=[0,0,0,1])
+        
+        pos[0] -= cubeHalfExtents[0]
+        pos[1] -= cubeHalfExtents[1]
+        pos[2] -= cubeHalfExtents[2]
 
     xgoal = np.arange(pos[0], pos[0]+width, occ_grid.resolution)
     ygoal = np.arange(pos[1], pos[1]+height,occ_grid.resolution)
@@ -152,6 +154,6 @@ def createCubes(pos: list, width: list, height: list, depth: list, min_bound = [
     
     cubesIds = []
     for i in range(len(pos)):
-        cubesIds.append(addCube(pos[i], width[i], height[i], depth[i], my_occ_grid))
+        cubesIds.append(addCube(pos[i], width[i], height[i], depth[i], my_occ_grid, using_sim=False))
     
     return cubesIds, my_occ_grid

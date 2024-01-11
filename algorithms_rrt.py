@@ -65,7 +65,8 @@ class Graph:
     def calcDist(self, node1, node2):
         
         "Calculate distance between the two nodes"
-        
+        # print("Pos", node1.pos)
+        # print("Pos", node2.pos)
         distance = np.sqrt((node1.pos[0] - node2.pos[0])**2 + (node1.pos[1] - node2.pos[1])**2 + (node1.pos[2] - node2.pos[2])**2)
         
         return distance
@@ -111,7 +112,7 @@ class Graph:
         
         "Find the nearest node to the new node"
         minDis = 10000000
-        nearestNode = Node([0,0,0])
+        nearestNode = Node(np.array([0,0,0]))
         for node in self.nodeArray:
             
             distance = self.calcDist(node, newNode)
@@ -257,17 +258,17 @@ class Graph:
         
         "Finds all nodes in a sphere with defined radius around the given node"
         
-        xCeil = centerNode.pos[0] + radius
-        xFloor = centerNode.pos[0] - radius
-        yCeil = centerNode.pos[1] + radius
-        yFloor = centerNode.pos[1] - radius
-        zCeil = centerNode.pos[2] + radius
-        zFloor = centerNode.pos[2] - radius
+        # xCeil = centerNode.pos[0] + radius
+        # xFloor = centerNode.pos[0] - radius
+        # yCeil = centerNode.pos[1] + radius
+        # yFloor = centerNode.pos[1] - radius
+        # zCeil = centerNode.pos[2] + radius
+        # zFloor = centerNode.pos[2] - radius
         indexList = []
 
         for idx, node in np.ndenumerate(self.nodeArray):
             
-            if ((xFloor <= node.pos[0] <= xCeil) and (yFloor <= node.pos[1] <= yCeil) and (zFloor <= node.pos[2] <= zCeil) and (node != centerNode)):
+            if (self.calcDist(node, centerNode) <= radius) and (node != centerNode):
                 
                 indexList.append(idx)
         
@@ -376,7 +377,7 @@ def rrt_star(graph, occ_grid, goal_threshold, step, rewire_rad, sample_node=None
         randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
         randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
         
-        newNode = Node([randX, randY, randZ])
+        newNode = Node(np.array([randX, randY, randZ]))
     else:
         newNode = sample_node
 
