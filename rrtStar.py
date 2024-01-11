@@ -142,32 +142,34 @@ class Graph:
             
         return False
     
-    def findBestNode(self) -> Node:
+    def findBestNode(self, goalThreshold) -> Node:
         
         "Finds the node closest to the goal region"
         
-        bestDist = 1000000
+        bestCost = 100000000
         bestIdx = 0
         
         for idx, node in np.ndenumerate(self.nodeArray):
             
             goalDist = self.calcDist(node, self.goal)
             
-            if goalDist < bestDist:
+            if goalDist < goalThreshold:
                 
-                bestDist = goalDist
-                bestIdx  = idx
+                if node.cost < bestCost:
+                
+                    bestCost = node.cost
+                    bestIdx  = idx
         
         return self.nodeArray[bestIdx]
             
             
     
-    def getPath(self):
+    def getPath(self, goal_threshold):
         
         "Returns the path from the node closest to the goal, back to the start"
         
         flag = True
-        goalNode = self.findBestNode()
+        goalNode = self.findBestNode(goal_threshold)
         pathNodes = []
         
         parent1 = goalNode.parent
@@ -187,10 +189,10 @@ class Graph:
         
         return pathNodes
         
-    def getPathLen(self):
+    def getPathLen(self, goal_threshold):
 
         total_length = 0
-        path = self.getPath()[::-1]
+        path = self.getPath(goal_threshold)[::-1]
         for i in range(len(path)):
             path[i] = np.array([path[i].pos[0], path[i].pos[1], path[i].pos[2]])
 
@@ -198,7 +200,7 @@ class Graph:
             total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
         return total_length
     
-    def draw(self, min_bound: tuple, max_bound:tuple, obs=None):
+    def draw(self, min_bound: tuple, max_bound:tuple, goal_threshold, obs=None):
         
         "Draws the graph"
         
@@ -219,7 +221,7 @@ class Graph:
             
             ax.plot((node.pos[0], parent.pos[0]), (node.pos[1], parent.pos[1]),  (node.pos[2], parent.pos[2]), color='black')
             
-        pathNodes = self.getPath()
+        pathNodes = self.getPath(goal_threshold)
         #print("test1")
         
         for i in range(len(pathNodes)-1):
@@ -483,7 +485,7 @@ def informed_rrt_star(graph : Graph, occ_grid, goal_threshold, step, rewire_rad,
     """
 
     if graph.goalReached:
-        path_len = graph.getPathLen()
+        path_len = graph.getPathLen(goal_threshold)
         min_space = occ_grid.origin
         max_space = min_space + occ_grid.dimensions
 
@@ -496,7 +498,7 @@ def informed_rrt_star(graph : Graph, occ_grid, goal_threshold, step, rewire_rad,
         # use the goal, instead of the last node
         d_goal = np.sqrt(np.sum((rand_sample-graph.goal.pos)**2))
         print("path length = ", path_len)
-        print("charact dis = ", d_start + d_goal)
+        #print("charact dis = ", d_start + d_goal)
 
         if d_start + d_goal <= path_len:
             node = Node(rand_sample)
