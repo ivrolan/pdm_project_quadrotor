@@ -77,6 +77,17 @@ class Graph:
         "Add an edge to the edge array"
         
         self.edgeArray.append([[nodeInGraph.pos[0], nodeToAdd.pos[0]], [nodeInGraph.pos[1], nodeToAdd.pos[1]], [nodeInGraph.pos[2], nodeToAdd.pos[2]]])
+    def deleteEdge(self, node1, node2):
+        
+        "Add an edge to the edge array"
+        for i in range(len(self.edgeArray)):
+            e = np.array(self.edgeArray[i])
+            edge_node_1 = Node(e[:,0])
+            edge_node_2 = Node(e[:,0])
+            if edge_node_1 == node1 and edge_node_2 == node2:
+                self.edgeArray.remove(i)
+                return
+        return
         
     
     def addNodetoExistingNode(self, nodeInGraph, nodeToAdd):
@@ -88,6 +99,7 @@ class Graph:
         nodeToAdd.cost += nodeInGraph.cost
         nodeToAdd.cost += self.calcDist(nodeToAdd, nodeInGraph)
         self.addNode(nodeToAdd)
+        self.addEdge(nodeInGraph, nodeToAdd)
     
     
     def findNearestNode(self, newNode):
@@ -273,6 +285,7 @@ class Graph:
         else:
             centerNode.cost = cost
             centerNode.parent = self.nodeArray[bestIdx]
+            self.addEdge(self.nodeArray[bestIdx], centerNode)
             self.nodeArray[-1] = centerNode
         
         return centerNode
@@ -294,7 +307,10 @@ class Graph:
             if not self.checkCollision(centerNode, node, occ_grid):
             
                 if node.cost > newCost:
-                
+                    # delete prev edge
+
+                    self.deleteEdge(node.parent, node)
+
                     node.parent = centerNode
                     node.cost = newCost
                 
@@ -353,7 +369,28 @@ class Graph:
                 
                 self.goalReached = True
         
+    def getOptimalPath(self):
+        flag = True
+        goalNode = self.nodeArray[-1]
+        #print(goalNode)
+        optimalNodes = [goalNode]
         
+        # Return the optimal path
+        
+        while flag != False:
+            #print(goalNode.x)
+            #print(self.start.x)
+        
+            if (goalNode == self.start):
+                optimalNodes.append(goalNode)
+                flag = False
+                
+            else:
+                parent = goalNode.parent
+                optimalNodes.append(goalNode)
+                goalNode = parent
+        
+        return optimalNodes
 
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape

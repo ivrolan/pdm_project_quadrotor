@@ -78,15 +78,16 @@ if GUI:
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 
-if GUI:
-    plotGraph(graph)
-
 # invert path so we start from the beginning
-path = graph.getOptimalPath()[::-1]
+path = graph.getPath()[::-1]
 
 # convert the nodes to coordinates
 for i in range(len(path)):
     path[i] = np.array([path[i].pos[0], path[i].pos[1], path[i].pos[2]])
+
+if GUI:
+    print("Path is:", path)    
+    plotGraph(graph)
 
 action = np.array([0.,0.,0.,0.]).reshape(1,4)
 next_wp_index = 0
@@ -114,10 +115,12 @@ for i in range(0, int(duration_sec*env.CTRL_FREQ)):
                                                                 )
     env.render()
     if np.sqrt(np.sum((path[next_wp_index] - obs[0,:3])**2)) < 0.15 and next_wp_index < len(path):
+        print("WAS GOING TO:", path[next_wp_index])
         next_wp_index += 1
         if next_wp_index == len(path):
             time_controller = time.time_ns() - controller_start
             break
+        
     if GUI:
         sync(i, START, env.CTRL_TIMESTEP)
 
