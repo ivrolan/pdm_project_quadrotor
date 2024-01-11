@@ -401,29 +401,46 @@ def scale_3d_matrix_values(matrix, scale_factor):
 
     return scaled_matrix
    
-def line_gaussian_sample(graph, mean, covariance):
-
+def line_gaussian_sample(graph, mean, covariance, covariance_type:str):
     # sample random point from the straight line
     random_line_point_id = np.random.choice(graph.straight_line.shape[0],1)
     random_line_point = graph.straight_line[random_line_point_id][0]
 
-    # sample point based on Gaussian distribution based on this point on the line
-    gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, covariance)
-    return gaussianX, gaussianY, gaussianZ
+    ratio_point_on_line = random_line_point_id/graph.straight_line.shape[0]
 
-def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covariance: str, points_interp=20):
+    if covariance_type == "diverging_cone":
+        diverging_covariance = ratio_point_on_line*covariance
+        gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, diverging_covariance)
+        return diverging_covariance, gaussianX, gaussianY, gaussianZ
+    elif covariance_type == "converging_cone":
+        converging_covariance = (1-ratio_point_on_line)*covariance
+        gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, converging_covariance)
+        return converging_covariance, gaussianX, gaussianY, gaussianZ
+    else:
+        # sample point based on Gaussian distribution based on this point on the line
+        gaussianX, gaussianY, gaussianZ = np.random.multivariate_normal(random_line_point - mean, covariance)
+        return gaussianX, gaussianY, gaussianZ
+
+def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covariance_type: str, points_interp=20):
     """
         Based on a graph, sample points withing the space of occ_grid and expand the graph
     """
     mean = 0
     line_magnitude = np.linalg.norm(graph.straight_line[-1] - graph.straight_line[0])
 
-    if covariance == "line":
-        graph.covariance = np.eye(3)*0.05*line_magnitude
-    elif covariance == "varying":
+    if covariance_type == "line":
+        covariance = np.eye(3)*0.05*line_magnitude
+        randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
+    elif covariance_type == "varying":
         graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.05*line_magnitude)
+        randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance, covariance_type)
+    elif covariance_type == "diverging_cone":
+        covariance = np.eye(3)*0.05*line_magnitude
+        graph.covariance, randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
+    elif covariance_type == "converging_cone":
+        covariance = np.eye(3)*0.05*line_magnitude
+        graph.covariance, randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
 
-    randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance)
     in_grid = occ_grid.inOccGrid((randX, randY, randZ))
 
     newNode = Node([randX,randY,randZ])
@@ -447,8 +464,7 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
 
             graph.goalReached = True
             print("Node array:", graph.nodeArray)
-    elif covariance == "varying":
-
+    elif covariance_type == "varying":
         graph.covariance*=1.1 
         # print("collision")
 
