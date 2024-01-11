@@ -71,14 +71,15 @@ for i in range(2000):
     iter += 1
     rrtStar.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="converging_cone")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
-
+    rrtStar.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
 print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
 ## end of path planning
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound)
-    graph.draw_line_samples()
+    # graph.draw_line_samples()
+    
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
 
