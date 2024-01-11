@@ -362,42 +362,42 @@ class Graph:
 
         return extendedNode
     
-    def rrt_star(self, occ_grid, goal_threshold, step, rewire_rad, sample_node=None, points_interp=20):
-        """
-            Based on a graph, sample points withing the space of occ_grid and expand the graph
-        """
-        min_space = occ_grid.origin
-        max_space = min_space + occ_grid.dimensions
+def rrt_star(graph, occ_grid, goal_threshold, step, rewire_rad, sample_node=None, points_interp=20):
+    """
+        Based on a graph, sample points withing the space of occ_grid and expand the graph
+    """
+    min_space = occ_grid.origin
+    max_space = min_space + occ_grid.dimensions
+    
+    #min_space = [0,0]
+    #max_space = [80, 80]
+    if sample_node == None:
+        randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
+        randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
+        randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
         
-        #min_space = [0,0]
-        #max_space = [80, 80]
-        if sample_node == None:
-            randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
-            randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
-            randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
-            
-            newNode = Node([randX, randY, randZ])
-        else:
-            newNode = sample_node
+        newNode = Node([randX, randY, randZ])
+    else:
+        newNode = sample_node
 
-        nearestNode = self.findNearestNode(newNode)
+    nearestNode = graph.findNearestNode(newNode)
 
-        # sample the point with a fixed step size
-        newNode = self.extend(nearestNode, newNode, step)
+    # sample the point with a fixed step size
+    newNode = graph.extend(nearestNode, newNode, step)
 
-        if not self.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
+    if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
+        
+        graph.addNodetoExistingNode(nearestNode, newNode)
+        
+        updatedNode = graph.chooseParent(rewire_rad, newNode, occ_grid)
+        #print(newNode)
+        graph.rewire(rewire_rad, updatedNode, occ_grid)
+        
+        
+        distanceToGoal = graph.calcDist(updatedNode, graph.goal)
+        if (distanceToGoal < goal_threshold):
             
-            self.addNodetoExistingNode(nearestNode, newNode)
-            
-            updatedNode = self.chooseParent(rewire_rad, newNode, occ_grid)
-            #print(newNode)
-            self.rewire(rewire_rad, updatedNode, occ_grid)
-            
-            
-            distanceToGoal = self.calcDist(updatedNode, self.goal)
-            if (distanceToGoal < goal_threshold):
-                
-                self.goalReached = True
+            graph.goalReached = True
 
 def scale_3d_matrix_values(matrix, scale_factor):
     x, y, z = matrix.shape
