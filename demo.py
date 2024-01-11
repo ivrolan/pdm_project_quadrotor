@@ -39,14 +39,14 @@ depth_list = [1, 1]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
 
-occ_grid.plot()
+# occ_grid.plot()
 # make the occ_grid bigger by 1 cell
 occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
 
 
 #scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
 # print(occ_grid)
-occ_grid.plot()
+# occ_grid.plot()
 start = env.pos[0]
 print("START:", start.tolist())
 goal = [7., 1, 1.]
@@ -63,8 +63,10 @@ max_space = min_space + occ_grid.dimensions
 
 ## start of the path planning
 start = time.time_ns()
-while graph.goalReached != True:
+iter = 0
+for i in range(2000):
     rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
+    iter += 1
     #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 
@@ -130,6 +132,7 @@ env.close()
 
 print("Planning_time nanoseconds:", ns_ellapsed)
 print("Planning_time seconds:", ns_ellapsed * 1e-9)
+print("Iter", iter)
 if time_controller != -1:
     print("Controller_time nanoseconds:", time_controller)
     print("Controller_time seconds:", time_controller * 1e-9)
