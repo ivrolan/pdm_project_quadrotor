@@ -38,6 +38,7 @@ max_bound = [10, 10, 5]
 # height_list = [5, 4]
 # depth_list = [5, 5]
 # goal = [9, 2, 2]
+
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
 

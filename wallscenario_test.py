@@ -29,11 +29,11 @@ max_bound = [10, 10, 5]
 "Corridor Scenario Creation "
 "Uncomment for corridor scenario"
 
-pos_list = [[3,0,0], [1,6,0]]
-width_list = [5, 8]
-height_list = [5, 4]
-depth_list = [5, 5]
-goal = [6, 1, 4]
+# pos_list = [[3,0,0], [1,6,0]]
+# width_list = [5, 8]
+# height_list = [5, 4]
+# depth_list = [5, 5]
+# goal = [9, 2, 2]
 
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
@@ -47,11 +47,11 @@ goal = [6, 1, 4]
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
 
-#pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
-#width_list = [3.5, 3, 3.5]
-#height_list = [5, 5, 5]
-#depth_list = [5, 2.5, 5]
-# goal = [6, 1, 4]
+pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+width_list = [3.5, 3, 3.5]
+height_list = [5, 5, 5]
+depth_list = [5, 2.5, 5]
+# goal = [5, 9, 8]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
 
