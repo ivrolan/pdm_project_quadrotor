@@ -14,7 +14,7 @@ from scenarios import randomScenario, treeScenario, wallScenario, createWall, cr
 #import rrt 
 import rrtStar
 
-from pybullet_utils import plotGraph, inflate_obstacles_3d
+from pybullet_utils import plotGraph, plotPointsPath, inflate_obstacles_3d
 
 GUI = True
 
@@ -64,7 +64,7 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 while graph.goalReached != True:
-    rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, points_interp=50)
+    rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 1., points_interp=50)
     #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
 
@@ -87,8 +87,8 @@ for i in range(len(path)):
 
 if GUI:
     print("Path is:", path)    
-    plotGraph(graph)
-
+    #plotGraph(graph)
+    plotPointsPath(path, rgba=[1.,0.,0., 0.8])
 action = np.array([0.,0.,0.,0.]).reshape(1,4)
 next_wp_index = 0
 

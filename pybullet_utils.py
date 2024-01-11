@@ -165,6 +165,49 @@ def plotGraph(graph: Graph, path=None, rgba=[0.,0.,0.,0.5], rgba_path=[1., 0., 0
 
     return bodiesId
 
+def plotPointsPath(points: list, rgba = [0.,0.,0.,0.5]):
+    """
+    points is a list of 3D points as np.array
+    """
+
+    pos_list = []
+    lengths_list = []
+    # rpy_list = []
+    # euler_list = []
+    quat_list = []
+    for i in range(len(points)-1):
+        # create edge from 2 points
+        e = np.array([points[i], points[i+1]]).T
+        print(e.shape)
+        # compute midpoints
+        x_pos = np.sum(np.array(e[0,:])) / 2.
+        y_pos = np.sum(np.array(e[1,:])) / 2.
+        z_pos = np.sum(np.array(e[2,:])) / 2.
+
+        pos_list.append([x_pos, y_pos, z_pos])
+        lengths_list.append(np.sqrt(np.sum((e[:,0] - e[:,1])**2)))
+
+
+
+        quat = vector_rotation_from_Z(e[:,0], e[:,1])
+        quat_list.append(quat)
+
+
+    bodiesId = []
+    for i in range(len(pos_list)):
+        visualShapeId = p.createVisualShape(shapeType=p.GEOM_CYLINDER,
+                                                radius=0.01,
+                                                length=lengths_list[i],
+                                                rgbaColor=rgba)
+
+        bodyId = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=-1, baseVisualShapeIndex=visualShapeId,
+                                basePosition=pos_list[i], baseOrientation=quat_list[i])
+        
+        # print("rpy:", rpy_list[i])
+        bodiesId.append(bodyId)
+
+    return bodiesId
+
 def inflate_obstacles_3d(grid, inflation_size):
     # Create a 3D structuring element (kernel)
     kernel = np.ones((inflation_size, inflation_size, inflation_size), dtype=int)

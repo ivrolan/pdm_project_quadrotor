@@ -334,7 +334,7 @@ class Graph:
 
         return extendedNode
     
-    def rrt_star(self, occ_grid, goal_threshold, step, points_interp=20):
+    def rrt_star(self, occ_grid, goal_threshold, step, rewire_rad, points_interp=20):
         """
             Based on a graph, sample points withing the space of occ_grid and expand the graph
         """
@@ -361,7 +361,7 @@ class Graph:
             
             updatedNode = self.chooseParent(3, newNode, occ_grid)
             #print(newNode)
-            self.rewire(3, updatedNode, occ_grid)
+            self.rewire(rewire_rad, updatedNode, occ_grid)
             
             
             distanceToGoal = self.calcDist(updatedNode, self.goal)
