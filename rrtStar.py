@@ -137,7 +137,7 @@ class Graph:
             
         return False
     
-    def findBestNode(self):
+    def findBestNode(self) -> Node:
         
         "Finds the node closest to the goal region"
         

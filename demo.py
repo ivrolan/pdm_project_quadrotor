@@ -64,7 +64,7 @@ max_space = min_space + occ_grid.dimensions
 ## start of the path planning
 start = time.time_ns()
 iter = 0
-for i in range(2000):
+for i in range(1500):
     rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
     iter += 1
     #rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
@@ -146,3 +146,4 @@ for i in range(len(path) - 1):
     total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
 
 print("Total length of the path:", total_length)
+print("Cost of bestNode:", graph.findBestNode().cost)
