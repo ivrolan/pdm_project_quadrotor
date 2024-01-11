@@ -69,7 +69,7 @@ iter = 0
 for i in range(2000):
     # rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
     iter += 1
-    rrtStar.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="converging_cone")
+    # rrtStar.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="converging_cone")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
     rrtStar.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
 print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")

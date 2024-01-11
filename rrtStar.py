@@ -495,6 +495,8 @@ def informed_rrt_star(graph : Graph, occ_grid, goal_threshold, step, rewire_rad,
 
         # use the goal, instead of the last node
         d_goal = np.sqrt(np.sum((rand_sample-graph.goal.pos)**2))
+        print("path length = ", path_len)
+        print("charact dis = ", d_start + d_goal)
 
         if d_start + d_goal <= path_len:
             node = Node(rand_sample)
