@@ -12,7 +12,7 @@ from scenarios import randomScenario, treeScenario, wallScenario, createWall, cr
 
 # import our own rrt library
 #import rrt 
-import rrtStar
+import algorithms_rrt
 
 from pybullet_utils import plotGraph, plotPointsPath, inflate_obstacles_3d
 
@@ -55,7 +55,7 @@ goal = [7., 1, 1.]
 print("GOAL:", goal)
 # compute path with rrt 
 
-graph = rrtStar.Graph(start, goal)
+graph = algorithms_rrt.Graph(start, goal)
 # step < threshold!
 threshold = 0.5
 step = 0.2
@@ -67,11 +67,11 @@ start = time.time_ns()
 
 iter = 0
 for i in range(2000):
-    # rrtStar.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
+    # algorithms_rrt.Graph.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
     iter += 1
-    # rrtStar.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="converging_cone")
+    # algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="converging_cone")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
-    rrtStar.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
+    algorithms_rrt.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
 print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
 
 ns_ellapsed = time.time_ns() - start
