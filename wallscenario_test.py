@@ -84,7 +84,7 @@ for t in range(N_TESTS):
     for i in range(len(path) - 1):
         total_length += np.sqrt(np.sum((path[i+1].pos - path[i].pos)**2))
 
-    data.append([[ns_ellapsed, ns_ellapsed * 1e-9, total_length]])
+    data.append([ns_ellapsed, ns_ellapsed * 1e-9, total_length])
 
 # Save the original standard output
 original_stdout = sys.stdout
