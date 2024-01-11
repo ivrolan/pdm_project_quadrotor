@@ -187,7 +187,16 @@ class Graph:
         
         return pathNodes
         
-    
+    def getPathLen(self):
+
+        total_length = 0
+        path = self.getPath()[::-1]
+        for i in range(len(path)):
+            path[i] = np.array([path[i].pos[0], path[i].pos[1], path[i].pos[2]])
+
+        for i in range(len(path) - 1):
+            total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
+        return total_length
     
     def draw(self, min_bound: tuple, max_bound:tuple, obs=None):
         
@@ -320,9 +329,7 @@ class Graph:
             node = self.nodeArray[ind]
             
             newCost = self.calcDist(centerNode, node) + centerNode.cost
-            
-            #TODO: Check collision
-            
+                        
             if not self.checkCollision(centerNode, node, occ_grid):
             
                 if node.cost > newCost:
@@ -353,7 +360,7 @@ class Graph:
 
         return extendedNode
     
-    def rrt_star(self, occ_grid, goal_threshold, step, rewire_rad, points_interp=20):
+    def rrt_star(self, occ_grid, goal_threshold, step, rewire_rad, sample_node=None, points_interp=20):
         """
             Based on a graph, sample points withing the space of occ_grid and expand the graph
         """
@@ -362,13 +369,15 @@ class Graph:
         
         #min_space = [0,0]
         #max_space = [80, 80]
+        if sample_node == None:
+            randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
+            randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
+            randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
+            
+            newNode = Node([randX, randY, randZ])
+        else:
+            newNode = sample_node
 
-        randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
-        randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
-        randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
-        
-        newNode = Node([randX, randY, randZ])
-        
         nearestNode = self.findNearestNode(newNode)
 
         # sample the point with a fixed step size
@@ -450,41 +459,32 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
     elif covariance == "varying":
 
         graph.covariance*=1.1 
-        # print("collision")
+        # print("collision")            
 
-# def rrt(graph, occ_grid, goal_threshold, step, points_interp=20):
-#     """
-#         Based on a graph, sample points withing the space of occ_grid and expand the graph
-#     """
-#     min_space = occ_grid.origin
-#     max_space = min_space + occ_grid.dimensions
-    
-#     #min_space = [0,0]
-#     #max_space = [80, 80]
+def informed_rrt_star(graph : Graph, occ_grid, goal_threshold, step, rewire_rad, points_interp=20):
+    """
+    Compute one iter of Informed RRT*
+    """
 
-#     randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
-#     randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
-#     randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
-    
-#     newNode = Node([randX, randY, randZ])
-    
-#     nearestNode = graph.findNearestNode(newNode)
+    if graph.goalReached:
+        path_len = graph.getPathLen()
+        min_space = occ_grid.origin
+        max_space = min_space + occ_grid.dimensions
 
-#     if not graph.checkCollision(nearestNode, newNode, occ_grid, num_points=points_interp):
-        
-#         graph.addNodetoExistingNode(nearestNode, newNode)
-        
-#         updatedNode = graph.chooseParent(3, newNode)
-#         #print(newNode)
-#         graph.rewire(3, updatedNode)
-        
-        
-#         distanceToGoal = graph.calcDist(updatedNode, graph.goal)
-#         if (distanceToGoal < goal_threshold):
-            
-#             graph.goalReached = True
-            
+        randX = np.random.uniform(min_space[0], max_space[0]-0.0001)
+        randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
+        randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
+        rand_sample = np.array([randX, randY, randZ])
+        d_start = np.sqrt(np.sum((rand_sample-graph.start.pos)**2))
 
+        # use the goal, instead of the last node
+        d_goal = np.sqrt(np.sum((rand_sample-graph.goal.pos)**2))
+
+        if d_start + d_goal <= path_len:
+            node = Node(rand_sample)
+            graph.rrt_star(occ_grid, goal_threshold, step, rewire_rad, sample_node=node)
+    else:
+        graph.rrt_star(occ_grid, goal_threshold, step, rewire_rad)
 
 def main():
     
