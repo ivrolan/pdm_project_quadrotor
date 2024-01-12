@@ -444,7 +444,7 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
         covariance = np.eye(3)*0.05*line_magnitude
         randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
     elif covariance_type == "varying":
-        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.1*line_magnitude)
+        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.05*line_magnitude)
         randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance, covariance_type)
     elif covariance_type == "diverging_cone":
         covariance = np.eye(3)*0.1*line_magnitude
