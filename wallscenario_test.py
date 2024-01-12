@@ -33,11 +33,17 @@ def runTest(scenario, algorithm, cubesFlag=True):
         "Corridor Scenario Creation "
         "Uncomment for corridor scenario"
     
+        # pos_list = [[3,0,0], [1,6,0]]
+        # width_list = [5, 8]
+        # height_list = [5, 4]
+        # depth_list = [5, 5]
+        # goal = [9, 5, 2]
+        
         pos_list = [[3,0,0], [1,6,0]]
-        width_list = [5, 8]
-        height_list = [5, 4]
+        width_list = [4, 6]
+        height_list = [4, 4]
         depth_list = [5, 5]
-        goal = [9, 5, 2]
+        goal = [9, 9, 2]
         
     
     elif (scenario == "Wall"):
@@ -62,13 +68,37 @@ def runTest(scenario, algorithm, cubesFlag=True):
         depth_list = [5, 2.5, 5]
         goal = [8, 8, 2.5]
         
+    elif (scenario == "close"):
+        
+        # pos_list = [[1.5, 1.5, 0],[1.5,1.5,2.5]]
+        # width_list = [1,1]
+        # height_list = [1,1]
+        # depth_list = [2.5,2.5]
+        # goal = [9, 9, 4]
+        
+    elif (scenario == "middle"):
+        
+        # pos_list = [[4.5, 4.5, 0],[4.5,4.5,2.5]]
+        # width_list = [1,1]
+        # height_list = [1,1]
+        # depth_list = [2.5,2.5]
+        # goal = [9, 9, 4]
+        
+    elif (scenario == 'far'):
+        
+        pos_list = [[7.5, 7.5, 0],[7.5,7.5,2.5]]
+        width_list = [1,1]
+        height_list = [1,1]
+        depth_list = [2.5,2.5]
+        goal = [9, 9, 4]
+        
     if (cubesFlag == True):
         
         wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
     
     else:
         scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=False)
-        goal = [9, 9, 9]
+        goal = [9, 9, 4]
     
     
     # occ_grid.plot()
@@ -78,7 +108,7 @@ def runTest(scenario, algorithm, cubesFlag=True):
     
     #scene_ids, occ_grid = treeScenario(0, min_bound, max_bound, size=0.25, using_sim=True)
     
-    start = [1.,1.,1.]
+    start = [0, 0, 0.125]
     # print("START:", start)
     #goal = [7., np.random.uniform(-2, 2), 1.]
     #goal = [2, 0, 2]
@@ -86,8 +116,8 @@ def runTest(scenario, algorithm, cubesFlag=True):
     # compute path with rrt 
     # step < threshold!
     threshold = 0.5
-    step = 0.2
-    rewire_radius = 0.8
+    step = 0.5
+    rewire_radius = 0.7
     min_space = occ_grid.origin
     max_space = min_space + occ_grid.dimensions
     
@@ -108,7 +138,8 @@ def runTest(scenario, algorithm, cubesFlag=True):
             if (algorithm == "conv_cone") :
                 algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, rewire_radius, points_interp=50, covariance_type="converging_cone")
             if (algorithm == "divg_cone"):
-                algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, rewire_radius, points_interp=50, covariance_type="diverging_cone")
+                algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, step, rewire_radius, points_interp=50, covariance_type="diverging_cone")
+                #print("test")
             if (algorithm == "line"):
                 algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, rewire_radius, points_interp=50, covariance_type="line")
             if (algorithm == "varying"):
@@ -124,7 +155,7 @@ def runTest(scenario, algorithm, cubesFlag=True):
     
         # invert path so we start from the beginning
         path = graph.getPath(threshold)[::-1]
-        print(path)
+        #print(path)
         # convert the nodes to coordinates
         # for i in range(len(path)):
         #     path[i] = np.array(path[i].pos)
@@ -133,7 +164,7 @@ def runTest(scenario, algorithm, cubesFlag=True):
         total_length = 0
         for i in range(len(path) - 1):
             total_length += np.sqrt(np.sum((path[i+1].pos - path[i].pos)**2))
-    
+        print("total length", total_length)
         data.append([ns_ellapsed, ns_ellapsed * 1e-9, total_length])
     
     # Save the original standard output
@@ -167,8 +198,37 @@ def runTest(scenario, algorithm, cubesFlag=True):
     print("Output saved to", filename)
     
     
-    
-runTest("Wall", "rrtstar", cubesFlag=False)
+
+
+runTest("close", "rrtstar")
+runTest("close", "conv_cone")
+runTest("close", "divg_cone")
+runTest("close", "line")
+runTest("close", "varying")
+runTest("close", "informed")
+
+runTest("middle", "rrtstar")
+runTest("middle", "conv_cone")
+runTest("middle", "divg_cone")
+runTest("middle", "line")
+runTest("middle", "varying")
+runTest("middle", "informed")
+
+runTest("far", "rrtstar")
+runTest("far", "conv_cone")
+runTest("far", "divg_cone")
+runTest("far", "line")
+runTest("far", "varying")
+runTest("far", "informed")
+
+
+
+#runTest("Wall", "rrtstar", cubesFlag=False)
+#runTest("Wall", "conv_cone", cubesFlag=False)
+#runTest("Wall", "divg_cone", cubesFlag=False)
+#unTest("Wall", "line", cubesFlag=False)
+#runTest("Wall", "varying", cubesFlag=False)
+#runTest("Wall", "informed", cubesFlag=False)
 
 #runTest("Wall", "rrtstar")
 #runTest("Bridge", "rrtstar")

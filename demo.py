@@ -33,20 +33,41 @@ max_bound = [10, 10, 5]
 "Corridor Scenario Creation "
 "Uncomment for corridor scenario"
 
+<<<<<<< HEAD
 # pos_list = [[3,0,0], [1,6,0]]
 # width_list = [5, 8]
 # height_list = [5, 4]
 # depth_list = [5, 5]
 # goal = [9, 5, 2]
+=======
+pos_list = [[3,0,0], [1,6,0]]
+width_list = [4, 6]
+height_list = [4, 4]
+depth_list = [5, 5]
+goal = [9, 9, 2]
+
+#pos_list = [2,0,0]
+#width_list = [6]
+#height_list = [8]
+#depth_list = [5]
+>>>>>>> 9f9ea46 (new scenarios)
 
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
 
+<<<<<<< HEAD
   pos_list = [[3, 0, 0],[3, 3, 0]]
   width_list = [1, 1]
   height_list = [3, 3]
   depth_list = [5, 5]
   goal = [6, 1, 4]   
+=======
+# pos_list = [[3, 0, 0],[3, 3, 0]]
+# width_list = [1, 1]
+# height_list = [3, 3]
+# depth_list = [5, 5]
+# goal = [6, 1, 4]
+>>>>>>> 9f9ea46 (new scenarios)
 
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
@@ -57,8 +78,39 @@ max_bound = [10, 10, 5]
 #   depth_list = [5, 2.5, 5]
 #   goal = [8, 8, 2.5]
 
+# pos_list = [5, 5, 0]
+# width_list = [2]
+# height_list = [2]
+# depth_list = [5]
+
+"CLose column"
+
+# pos_list = [[1.5, 1.5, 0],[1.5,1.5,2.5]]
+# width_list = [1,1]
+# height_list = [1,1]
+# depth_list = [2.5,2.5]
+# goal = [9, 9, 4]
+
+
+"Far Column"
+
+pos_list = [[7.5, 7.5, 0],[7.5,7.5,2.5]]
+width_list = [1,1]
+height_list = [1,1]
+depth_list = [2.5,2.5]
+goal = [9, 9, 4]
+
+"Middle Column"
+
+# pos_list = [[4.5, 4.5, 0],[4.5,4.5,2.5]]
+# width_list = [1,1]
+# height_list = [1,1]
+# depth_list = [2.5,2.5]
+# goal = [9, 9, 4]
+
+
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound, using_sim=True)
-# scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
+#scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
 
 # occ_grid.plot()
 # make the occ_grid bigger by 1 cell
@@ -82,26 +134,28 @@ threshold = 0.5
 step = 0.2
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions
-rewire_radius = 1
+rewire_radius = 0.7
 
 ## start of the path plannings
 start = time.time_ns()
 
 iter = 0
 for i in range(2000):
-    algorithms_rrt.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
-    iter += 1
+    #algorithms_rrt.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
+    
     # algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="varying")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
     # algorithms_rrt.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
     # algorithms_rrt.rrt_star(graph, occ_grid, threshold, step, rewire_radius,  points_interp=50)
+    algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, step, rewire_radius, points_interp=50, covariance_type="converging_cone")
+    iter += 1
 print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
 
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound, threshold)
-    # graph.draw_line_samples()
+    graph.draw_line_samples()
     
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
@@ -147,7 +201,7 @@ for i in range(0, int(duration_sec*env.CTRL_FREQ)):
         next_wp_index += 1
         if next_wp_index == len(path):
             time_controller = time.time_ns() - controller_start
-            break
+            #break
         
     if GUI:
         sync(i, START, env.CTRL_TIMESTEP)
