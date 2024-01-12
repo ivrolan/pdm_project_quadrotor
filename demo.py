@@ -37,30 +37,25 @@ max_bound = [10, 10, 5]
 # width_list = [5, 8]
 # height_list = [5, 4]
 # depth_list = [5, 5]
-# goal = [9, 2, 2]
-
-#pos_list = [2,0,0]
-#width_list = [6]
-#height_list = [8]
-#depth_list = [5]
+# goal = [9, 5, 2]
 
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
 
-pos_list = [[0, 0, 0],[0, 0, 0]]
-width_list = [0, 0]
-height_list = [0, 0]
-depth_list = [0, 0]
-goal = [9, 9, 4]    
+  pos_list = [[3, 0, 0],[3, 3, 0]]
+  width_list = [1, 1]
+  height_list = [3, 3]
+  depth_list = [5, 5]
+  goal = [6, 1, 4]   
 
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
 
-# pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
-# width_list = [3.5, 3, 3.5]
-# height_list = [5, 5, 5]
-# depth_list = [5, 2.5, 5]
-# goal = [8, 8, 2.5]
+#   pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+#   width_list = [3.5, 3, 3.5]
+#   height_list = [5, 5, 5]
+#   depth_list = [5, 2.5, 5]
+#   goal = [8, 8, 2.5]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound, using_sim=True)
 # scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
