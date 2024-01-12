@@ -33,41 +33,25 @@ max_bound = [10, 10, 5]
 "Corridor Scenario Creation "
 "Uncomment for corridor scenario"
 
-<<<<<<< HEAD
+
 # pos_list = [[3,0,0], [1,6,0]]
 # width_list = [5, 8]
 # height_list = [5, 4]
 # depth_list = [5, 5]
 # goal = [9, 5, 2]
-=======
-pos_list = [[3,0,0], [1,6,0]]
-width_list = [4, 6]
-height_list = [4, 4]
-depth_list = [5, 5]
-goal = [9, 9, 2]
 
-#pos_list = [2,0,0]
-#width_list = [6]
-#height_list = [8]
-#depth_list = [5]
->>>>>>> 9f9ea46 (new scenarios)
+
 
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
 
-<<<<<<< HEAD
+
   pos_list = [[3, 0, 0],[3, 3, 0]]
   width_list = [1, 1]
   height_list = [3, 3]
   depth_list = [5, 5]
   goal = [6, 1, 4]   
-=======
-# pos_list = [[3, 0, 0],[3, 3, 0]]
-# width_list = [1, 1]
-# height_list = [3, 3]
-# depth_list = [5, 5]
-# goal = [6, 1, 4]
->>>>>>> 9f9ea46 (new scenarios)
+
 
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
