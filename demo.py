@@ -46,11 +46,11 @@ max_bound = [10, 10, 5]
 "Uncomment for wall scenario"
 
 
-  pos_list = [[3, 0, 0],[3, 3, 0]]
-  width_list = [1, 1]
-  height_list = [3, 3]
-  depth_list = [5, 5]
-  goal = [6, 1, 4]   
+pos_list = [[3, 0, 0],[3, 3, 0]]
+width_list = [1, 1]
+height_list = [3, 3]
+depth_list = [5, 5]
+goal = [6, 1, 4]   
 
 
 "Bridge Scenario Creation"
