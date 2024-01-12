@@ -144,7 +144,9 @@ def runTest(scenario, algorithm, cubesFlag=True):
     
     # Construct the filename with the timestamp - change path - scenario - search algorithm.
     
-    filename = f"Data/wallscenario/{scenario}{algorithm}{timestamp}.csv"
+
+    filename = f"Data/wallscenario/{scenario}_{algorithm}_{timestamp}.csv"
+
     
     
     data_header = ["time_ns", "time_s", "Length"]
@@ -182,6 +184,7 @@ runTest("Wall", "rrtstar", cubesFlag=False)
 # runTest("Corridor", "line")
 # runTest("Wall", "line")
 # runTest("Bridge", "line")
+
 
 # runTest("Corridor", "varying")
 # runTest("Wall", "varying")
