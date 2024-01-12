@@ -20,10 +20,10 @@ import algorithms_rrt
 
 from pybullet_utils import plotGraph, inflate_obstacles_3d
 
-ITERATIONS = 1000
-N_TESTS = 5
+ITERATIONS = 2000
+N_TESTS = 10
 
-min_bound = [0, -2, 0]
+min_bound = [0, 0, 0]
 max_bound = [10, 10, 5]
 
 "Corridor Scenario Creation "
@@ -38,20 +38,20 @@ max_bound = [10, 10, 5]
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
 
-pos_list = [[3, 3, 0],[3, 0, 0]]
-width_list = [1, 1]
-height_list = [3, 3]
-depth_list = [5, 5]
-goal = [6, 1, 4]
+# pos_list = [[3, 0, 0],[3, 3, 0]]
+# width_list = [1, 1]
+# height_list = [3, 3]
+# depth_list = [5, 5]
+# goal = [6, 1, 4]
 
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
 
-# pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
-# width_list = [3.5, 3, 3.5]
-# height_list = [5, 5, 5]
-# depth_list = [5, 2.5, 5]
-# goal = [5, 9, 8]
+pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+width_list = [3.5, 3, 3.5]
+height_list = [5, 5, 5]
+depth_list = [5, 2.5, 5]
+goal = [8, 8, 2.5]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound)
 
@@ -85,7 +85,7 @@ for t in range(N_TESTS):
 
     for i in range(ITERATIONS):
         algorithms_rrt.rrt_star(graph, occ_grid, threshold, step, rewire_radius,  points_interp=50)
-        # algorithms_rrt.rrt_gaussian(graph, occ_grid, threshold, 0.2, points_interp=10, covariance="varying")
+        #algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, rewire_radius, points_interp=10, covariance_type="varying")
         if i %10 == 0:
             # print(f"iter {i}")
             pass

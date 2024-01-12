@@ -27,7 +27,7 @@ duration_sec = 20
 PYB_CLIENT = env.getPyBulletClient()
 startOrientation = p.getQuaternionFromEuler([0,0,0])
 
-min_bound = [0, -2, 0]
+min_bound = [0, 0, 0]
 max_bound = [10, 10, 5]
 
 "Corridor Scenario Creation "
@@ -39,23 +39,28 @@ max_bound = [10, 10, 5]
 # depth_list = [5, 5]
 # goal = [9, 2, 2]
 
+#pos_list = [2,0,0]
+#width_list = [6]
+#height_list = [8]
+#depth_list = [5]
+
 "Wall Scenario Creation"
 "Uncomment for wall scenario"
 
-pos_list = [[3, 3, 0],[3, 0, 0]]
-width_list = [1, 1]
-height_list = [3, 3]
-depth_list = [5, 5]
-goal = [6, 1, 4]
+# pos_list = [[3, 0, 0],[3, 3, 0]]
+# width_list = [1, 1]
+# height_list = [3, 3]
+# depth_list = [5, 5]
+# goal = [6, 1, 4]
 
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
 
-# pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
-# width_list = [3.5, 3, 3.5]
-# height_list = [5, 5, 5]
-# depth_list = [5, 2.5, 5]
-# goal = [5, 9, 8]
+pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+width_list = [3.5, 3, 3.5]
+height_list = [5, 5, 5]
+depth_list = [5, 2.5, 5]
+goal = [8, 8, 2.5]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound, using_sim=True)
 # scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
@@ -82,24 +87,26 @@ threshold = 0.5
 step = 0.2
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions
+rewire_radius = 1
 
-## start of the path planning
+## start of the path plannings
 start = time.time_ns()
 
 iter = 0
-for i in range(1000):
+for i in range(2000):
     # algorithms_rrt.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
     iter += 1
-    algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="line")
+    #algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="line")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
     # algorithms_rrt.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
+    algorithms_rrt.rrt_star(graph, occ_grid, threshold, step, rewire_radius,  points_interp=50)
 print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
 
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
     graph.draw(min_bound, max_bound, threshold)
-    graph.draw_line_samples()
+    #graph.draw_line_samples()
     
 # as the size is < 1.0 plotting with obs fails because of scaling 
 # graph.draw(obs=occ_grid)
