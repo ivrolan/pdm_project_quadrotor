@@ -237,6 +237,15 @@ class Graph:
             print(world_voxels.shape)
             ax.voxels(world_voxels, edgecolor='k')
             print("done")
+
+        x_coords, y_coords, z_coords = self.straight_line[:, 0], self.straight_line[:, 1], self.straight_line[:, 2]
+        ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
+        ax.scatter(self.start.pos[0], self.start.pos[1], self.start.pos[2], color='green', label='Start Point')
+        ax.scatter(self.goal.pos[0], self.goal.pos[1], self.goal.pos[2], color='red', label='End Point')
+        ax.set_xlabel('X axis')
+        ax.set_ylabel('Y axis')
+        ax.set_zlabel('Z axis')
+
         plt.show()
 
     def draw_line_samples(self):
@@ -250,6 +259,11 @@ class Graph:
         self.ax.scatter(self.start.pos[0], self.start.pos[1], self.start.pos[2], color='green', label='Start Point')
         self.ax.scatter(self.goal.pos[0], self.goal.pos[1], self.goal.pos[2], color='red', label='End Point')
         self.ax.scatter(x_points, y_points, z_points, color='purple')
+
+        self.ax.set_xlabel('X axis')
+        self.ax.set_ylabel('Y axis')
+        self.ax.set_zlabel('Z axis')
+        # plt.legend()
         plt.show()
         
         
@@ -444,7 +458,7 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
         covariance = np.eye(3)*0.05*line_magnitude
         randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
     elif covariance_type == "varying":
-        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.05*line_magnitude)
+        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.1*line_magnitude)
         randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance, covariance_type)
     elif covariance_type == "diverging_cone":
         covariance = np.eye(3)*0.1*line_magnitude
@@ -455,7 +469,7 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
 
     in_grid = occ_grid.inOccGrid((randX, randY, randZ))
 
-    newNode = Node([randX,randY,randZ])
+    newNode = Node(np.array([randX,randY,randZ]))
 
     nearestNode = graph.findNearestNode(newNode)
 
