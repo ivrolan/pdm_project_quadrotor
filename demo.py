@@ -23,7 +23,7 @@ GUI = True
 parser = argparse.ArgumentParser(description='Demo of the working algorithm in Pybullet.')
 
 possible_algorithms = ["rrt_star", "informed-rrt_star", "rrt_star-n", "rrt_star-ni",  "cc-rrt_star-n", "dc-rrt_star-n"]
-possible_scenarios = ["bridge", "near", "far"]# "center", "forest"]
+possible_scenarios = ["bridge", "near", "far", "mid"] #, "forest"]
 
 parser.add_argument('--alg', type=str, default="rrt_star", choices=possible_algorithms, help='Algorithm chosen')
 parser.add_argument('--sce', type=str, default="bridge", choices=possible_scenarios, help='Scenario chosen')
@@ -45,26 +45,30 @@ PYB_CLIENT = env.getPyBulletClient()
 min_bound = [0, 0, 0]
 max_bound = [10, 10, 5]
 
-"Corridor Scenario Creation "
-"Uncomment for corridor scenario"
-if args.sce == "near":
-    pos_list = [[3,0,0], [1,6,0]]
-    width_list = [5, 8]
-    height_list = [5, 4]
-    depth_list = [5, 5]
-    goal = [9, 5, 2]
 
-"Wall Scenario Creation"
-"Uncomment for wall scenario"
+"Near obstacle Scenario Creation"
+if args.sce == "near":
+    pos_list = [[0.5, 0.5, 0],[0.5,0.5,2.5]]
+    width_list = [1,1]
+    height_list = [1,1]
+    depth_list = [2.5,2.5]
+    goal = [9, 9, 4]
+
+"Far obstacle Scenario Creation"
 if args.sce == "far":
-    pos_list = [[3, 0, 0],[3, 3, 0]]
-    width_list = [1, 1]
-    height_list = [3, 3]
-    depth_list = [5, 5]
-    goal = [6, 1, 4]   
+    pos_list = [[7.5, 7.5, 0],[7.5,7.5,2.5]]
+    width_list = [1,1]
+    height_list = [1,1]
+    depth_list = [2.5,2.5]
+    goal = [9, 9, 4]
+if args.sce == "mid":
+    pos_list = [[4.5, 4.5, 0],[4.5,4.5,2.5]]
+    width_list = [1,1]
+    height_list = [1,1]
+    depth_list = [2.5,2.5]
+    goal = [9, 9, 4]
 
 "Bridge Scenario Creation"
-"Uncomment for bridge scenario"
 if args.sce == "bridge":
     pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
     width_list = [3.5, 3, 3.5]
