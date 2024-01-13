@@ -55,11 +55,11 @@ A modification of RRT* that draws a straight line L that connects the `start` an
 Whenever a node is rejected, due to it being in collision with an obstacle, the covariance of the Gaussian distribution increases exponentially by a factor 1.1. This causes the sampling to adapt to the size of the obstacles along the line, while still being able to find the optimal path around it. The covariance starts at 0.01 and increases to an upper bound of 10% of L.
 
 
-### DC-RRT*N
+### RRT*N-DC
 
 The sampling region can vary depending on how far along L the node is sampled. Starting with a small covariance, and increasing the covariance as we advance along the line to the goal. The lower bound for this method is $.01 and the upper bound is 10% of L.
 
-### CC-RRT*N
+### RRT*N-CC
 
 As opposed to DC-RRT\*N, CC-RRT\*N starts with a large covariance and decreases as we advance along the line to the goal. The lower bound for this method is 0.01 and the upper bound is 10% of L.
 
