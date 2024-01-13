@@ -12,7 +12,7 @@ This demo will showcase the different algorithms implemented and the different s
 
 Possible algorithms to test on, option `--alg algorithm_chosen`
 - `rrt_star` (default)
-- `informed-rrt*`
+- `informed-rrt_star`
 - `rrt_star-n`
 - `rrt_star-ni`
 - `cc-rrt_star-n`
