@@ -207,6 +207,7 @@ env.close()
 print("Planning_time nanoseconds:", ns_ellapsed)
 print("Planning_time seconds:", ns_ellapsed * 1e-9)
 print("Iter", iter)
+print("Nodes added", len(graph.nodeArray))
 if time_controller != -1:
     print("Controller_time nanoseconds:", time_controller)
     print("Controller_time seconds:", time_controller * 1e-9)
