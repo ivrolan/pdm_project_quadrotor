@@ -1,4 +1,4 @@
-# Planning & Decision Making Project: Comparison of Sampling Planning methods: RRT\*, RRT\*-N, RRT\*-Ni, CC-RRT\*-N, DC-RRT\*-N
+# Planning & Decision Making Project: Comparison of Sampling Planning methods: RRT\*, RRT\*-N, RRT\*-Ni, RRT\*-N-CC, RRT\*-N-DC
 
 ## Install environment
 
