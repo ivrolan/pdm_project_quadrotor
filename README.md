@@ -32,7 +32,7 @@ The demo can be executed with:
     
 ### Video of execution 
 
-    python3 demo.py --alg rrt* --sce bridge --iter 2000
+    python3 demo.py --alg rrt_star --sce bridge --iter 2000
 
 https://github.com/ivrolan/pdm_project_quadrotor/assets/22964725/b2e40f20-e4ab-46f9-935d-619ac5364d3b
 
@@ -44,6 +44,15 @@ https://github.com/ivrolan/pdm_project_quadrotor/assets/22964725/b2e40f20-e4ab-4
 ### RRT*Ni
 ### CC-RRT*N
 ### DC-RRT*N
+
+## Structure of the code
+
+- `demo.py`: implements a working example of the algorithms and cases implemented
+- `algorithms_rrt.py`: implements the `Graph` structure that contains `Node`s and the different algorithms implemented.
+- `scenarios.py`: implements the creation of obstacles in the simulation according to the chosen scenario. At the same time, an object `OccGrid3D` is created containing the occupancy information of the scenario.
+- `occupancy_grid.py`: implements the `OccGrid3D` object.
+- `pybullet_utils.py`: contains helper functions to draw objects in the simulation.
+- `scenario_test.py`: script used to obtain meausures of performance for the different algorithms and scenarios
 
 # Authors
 
