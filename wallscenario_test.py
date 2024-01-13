@@ -70,19 +70,20 @@ def runTest(scenario, algorithm, cubesFlag=True):
         
     elif (scenario == "close"):
         
-        # pos_list = [[1.5, 1.5, 0],[1.5,1.5,2.5]]
-        # width_list = [1,1]
-        # height_list = [1,1]
-        # depth_list = [2.5,2.5]
-        # goal = [9, 9, 4]
+        pos_list = [[1.5, 1.5, 0],[1.5,1.5,2.5]]
+        width_list = [1,1]
+        height_list = [1,1]
+        depth_list = [2.5,2.5]
+        goal = [9, 9, 4]
         
     elif (scenario == "middle"):
         
-        # pos_list = [[4.5, 4.5, 0],[4.5,4.5,2.5]]
-        # width_list = [1,1]
-        # height_list = [1,1]
-        # depth_list = [2.5,2.5]
-        # goal = [9, 9, 4]
+        
+        pos_list = [[4.5, 4.5, 0],[4.5,4.5,2.5]]
+        width_list = [1,1]
+        height_list = [1,1]
+        depth_list = [2.5,2.5]
+        goal = [9, 9, 4]
         
     elif (scenario == 'far'):
         
@@ -165,9 +166,20 @@ def runTest(scenario, algorithm, cubesFlag=True):
         for i in range(len(path) - 1):
             total_length += np.sqrt(np.sum((path[i+1].pos - path[i].pos)**2))
         print("total length", total_length)
+        
+        if (total_length == 0):
+            total_length = np.nan
+
         data.append([ns_ellapsed, ns_ellapsed * 1e-9, total_length])
     
+    data = np.array(data)
+    #print(data[:,1])
+    avg_time = np.mean(data[:,1])
+    std_time = np.std(data[:,1])
+    avg_length = np.mean(data[:,2])
+    std_length = np.std(data[:,2])
     # Save the original standard output
+    avg_data = [avg_time, std_time, avg_length, std_length]
     original_stdout = sys.stdout
     
     # Generate a date and time stamp
@@ -180,7 +192,7 @@ def runTest(scenario, algorithm, cubesFlag=True):
 
     
     
-    data_header = ["time_ns", "time_s", "Length"]
+    data_header = ["time_ns", "time_s", "Length", "avg_time", "std_time", "avg_length", "std_length"]
     
     # Redirect the standard output to the file
     with open(filename, 'w', newline='') as csvfile:
@@ -197,29 +209,31 @@ def runTest(scenario, algorithm, cubesFlag=True):
     
     print("Output saved to", filename)
     
+    return avg_data
     
+    
+data = []
 
+data.append(runTest("close", "rrtstar"))
+data.append(runTest("close", "conv_cone"))
+data.append(runTest("close", "divg_cone"))
+data.append(runTest("close", "line"))
+data.append(runTest("close", "varying"))
+data.append(runTest("close", "informed"))
 
-runTest("close", "rrtstar")
-runTest("close", "conv_cone")
-runTest("close", "divg_cone")
-runTest("close", "line")
-runTest("close", "varying")
-runTest("close", "informed")
+data.append(runTest("middle", "rrtstar"))
+data.append(runTest("middle", "conv_cone"))
+data.append(runTest("middle", "divg_cone"))
+data.append(runTest("middle", "line"))
+data.append(runTest("middle", "varying"))
+data.append(runTest("middle", "informed"))
 
-runTest("middle", "rrtstar")
-runTest("middle", "conv_cone")
-runTest("middle", "divg_cone")
-runTest("middle", "line")
-runTest("middle", "varying")
-runTest("middle", "informed")
-
-runTest("far", "rrtstar")
-runTest("far", "conv_cone")
-runTest("far", "divg_cone")
-runTest("far", "line")
-runTest("far", "varying")
-runTest("far", "informed")
+data.append(runTest("far", "rrtstar"))
+data.append(runTest("far", "conv_cone"))
+data.append(runTest("far", "divg_cone"))
+data.append(runTest("far", "line"))
+data.append(runTest("far", "varying"))
+data.append(runTest("far", "informed"))
 
 
 
@@ -253,3 +267,32 @@ runTest("far", "informed")
 # runTest("Corridor", "informed")
 # runTest("Wall", "informed")
 # runTest("Bridge", "informed")
+
+original_stdout = sys.stdout
+
+# Generate a date and time stamp
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# Construct the filename with the timestamp - change path - scenario - search algorithm.
+
+
+filename = f"Data/wallscenario/averages.csv"
+
+
+
+data_header = ["avg_time", "std_time", "avg_length", "std_length"]
+
+# Redirect the standard output to the file
+with open(filename, 'w', newline='') as csvfile:
+    csvwriter = csv.writer(csvfile)
+
+    # Write the header and data rows
+    csvwriter.writerow(data_header)
+    csvwriter.writerows(data)
+
+print(f"CSV file saved to {filename}")
+
+# Restore the original standard output
+sys.stdout = original_stdout
+
+print("Output saved to", filename)
