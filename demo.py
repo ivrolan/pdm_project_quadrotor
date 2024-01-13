@@ -28,6 +28,7 @@ possible_scenarios = ["bridge", "near", "far"]# "center", "forest"]
 parser.add_argument('--alg', type=str, default="rrt_star", choices=possible_algorithms, help='Algorithm chosen')
 parser.add_argument('--sce', type=str, default="bridge", choices=possible_scenarios, help='Scenario chosen')
 parser.add_argument('--iter',type=int, default=2000, help='Number of iterations')
+parser.add_argument('--video',action='store_true', help="Option to save the runnning test into test.mp4 file")
 
 # parse args
 args = parser.parse_args()
@@ -162,7 +163,8 @@ camera_yaw = 30.0
 
 time_controller = -1
 # from here start recording
-logId = p.startStateLogging(loggingType=p.STATE_LOGGING_VIDEO_MP4, fileName="test.mp4")
+if args.video:
+    logId = p.startStateLogging(loggingType=p.STATE_LOGGING_VIDEO_MP4, fileName="test.mp4")
 
 # compute the length of the path
 total_length = 0
@@ -198,8 +200,8 @@ for i in range(0, int(duration_sec*env.CTRL_FREQ)):
     if GUI:
         sync(i, START, env.CTRL_TIMESTEP)
 
-
-p.stopStateLogging(logId)
+if args.video:
+    p.stopStateLogging(logId)
 env.close()
 
 print("Planning_time nanoseconds:", ns_ellapsed)
