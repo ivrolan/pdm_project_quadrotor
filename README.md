@@ -11,12 +11,12 @@ Install the 'drones' environment specified in [gym_pybullet_drones](https://gith
 This demo will showcase the different algorithms implemented and the different scenarios used for a fixed number of iterations (`--iter`).
 
 Possible algorithms to test on, option `--alg algorithm_chosen`
-- `rrt*` (default)
-- `informed-rrt*`
-- `rrt*n`
-- `rrt*ni`
-- `cc-rrt*n`
-- `dc-rrt*n`
+- `rrt_star` (default)
+- `informed-rrt_star`
+- `rrt_star-n`
+- `rrt_star-ni`
+- `cc-rrt_star-n`
+- `dc-rrt_star-n`
 
 Possible scenarios `--sce scenario_chosen`:
 
