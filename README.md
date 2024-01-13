@@ -71,7 +71,7 @@ As opposed to DC-RRT\*N, CC-RRT\*N starts with a large covariance and decreases 
 - `scenarios.py`: implements the creation of obstacles in the simulation according to the chosen scenario. At the same time, an object `OccGrid3D` is created containing the occupancy information of the scenario.
 - `occupancy_grid.py`: implements the `OccGrid3D` object.
 - `pybullet_utils.py`: contains helper functions to draw objects in the simulation.
-- `scenario_test.py`: script used to obtain meausures of performance for the different algorithms and scenarios
+- `scenarios_test.py`: script used to obtain meausures of performance for the different algorithms and scenarios
 
 # Authors
 
