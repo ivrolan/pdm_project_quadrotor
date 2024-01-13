@@ -33,11 +33,11 @@ max_bound = [10, 10, 5]
 "Corridor Scenario Creation "
 "Uncomment for corridor scenario"
 
-# pos_list = [[3,0,0], [1,6,0]]
-# width_list = [5, 8]
-# height_list = [5, 4]
-# depth_list = [5, 5]
-# goal = [9, 2, 2]
+pos_list = [[3,0,0], [1,6,0]]
+width_list = [5, 8]
+height_list = [5, 4]
+depth_list = [5, 5]
+goal = [9, 2, 2]
 
 #pos_list = [2,0,0]
 #width_list = [6]
@@ -56,18 +56,18 @@ max_bound = [10, 10, 5]
 "Bridge Scenario Creation"
 "Uncomment for bridge scenario"
 
-pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
-width_list = [3.5, 3, 3.5]
-height_list = [5, 5, 5]
-depth_list = [5, 2.5, 5]
-goal = [8, 8, 2.5]
+# pos_list = [[0,2,0], [3.5, 2, 2.5], [6.5, 2, 0]]
+# width_list = [3.5, 3, 3.5]
+# height_list = [5, 5, 5]
+# depth_list = [5, 2.5, 5]
+# goal = [8, 8, 2.5]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound, using_sim=True)
-# scene_ids, occ_grid = treeScenario(5, min_bound, max_bound, size=0.25, using_sim=True)
+# scene_ids, occ_grid = treeScenario(6, min_bound, max_bound, size=0.25, using_sim=True)
 
 # occ_grid.plot()
 # make the occ_grid bigger by 1 cell
-occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 3)
+occ_grid.occ_grid = inflate_obstacles_3d(occ_grid.occ_grid, 7)
 
 
 # print(occ_grid)
@@ -83,25 +83,27 @@ print("GOAL:", goal)
 
 graph = algorithms_rrt.Graph(start, goal)
 # step < threshold!
-threshold = 0.5
-step = 0.2
+threshold = 0.7
+step = 0.3
 min_space = occ_grid.origin
 max_space = min_space + occ_grid.dimensions
-rewire_radius = 1
+rewire_radius = 0.7
 
 ## start of the path plannings
 start = time.time_ns()
 
 iter = 0
-for i in range(2000):
+for i in range(2500):
     # algorithms_rrt.rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=50)
     iter += 1
     #algorithms_rrt.rrt_star_gaussian(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10, covariance_type="line")
     # rrt.rrt(graph, occ_grid, threshold, 0.2, points_interp=10)
     # algorithms_rrt.informed_rrt_star(graph, occ_grid, threshold, 0.2, 0.8, points_interp=10)
-    algorithms_rrt.rrt_star(graph, occ_grid, threshold, step, rewire_radius,  points_interp=50)
-print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
-
+    algorithms_rrt.rrt_star(graph, occ_grid, threshold, step, rewire_radius,  points_interp=10)
+if len(graph.getPath(threshold)) > 1: 
+    print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
+else:
+    print("NOT_REACHED")
 ns_ellapsed = time.time_ns() - start
 
 if GUI:
@@ -135,7 +137,22 @@ controller_start = time.time_ns()
 # how to get the sim time without actually runnig the sim in gui?
 # env.time
 
+# camera_target_position = [0, 0, 0]
+camera_distance = 3.0
+camera_pitch = -30.0
+camera_yaw = 30.0
+
+
 time_controller = -1
+# from here start recording
+logId = p.startStateLogging(loggingType=p.STATE_LOGGING_VIDEO_MP4, fileName="test.mp4")
+
+# compute the length of the path
+total_length = 0
+for i in range(len(path) - 1):
+    total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
+
+duration_sec = total_length*2.4
 for i in range(0, int(duration_sec*env.CTRL_FREQ)):
     obs, reward, terminated, truncated, info = env.step(action)
     # print(obs)
@@ -146,6 +163,13 @@ for i in range(0, int(duration_sec*env.CTRL_FREQ)):
                                                                 target_pos=path[next_wp_index],
                                                                 target_rpy=INIT_RPYS[0, :]
                                                                 )
+    print(obs[0][:3])
+    p.resetDebugVisualizerCamera(
+        cameraTargetPosition=obs[0][:3],
+        cameraDistance=camera_distance,
+        cameraYaw=camera_yaw,
+        cameraPitch=camera_pitch,
+    )
     env.render()
     if np.sqrt(np.sum((path[next_wp_index] - obs[0,:3])**2)) < 0.15 and next_wp_index < len(path):
         print("WAS GOING TO:", path[next_wp_index])
@@ -158,7 +182,7 @@ for i in range(0, int(duration_sec*env.CTRL_FREQ)):
         sync(i, START, env.CTRL_TIMESTEP)
 
 
-
+p.stopStateLogging(logId)
 env.close()
 
 print("Planning_time nanoseconds:", ns_ellapsed)
@@ -170,11 +194,6 @@ if time_controller != -1:
 
     # warning:  controller does not follow the path perfectly, 
     #           sometimes it collides with obstacles and fails
-
-# compute the length of the path
-total_length = 0
-for i in range(len(path) - 1):
-    total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
 
 print("Total length of the path:", total_length)
 print("Cost of bestNode:", graph.findBestNode(threshold).cost)
