@@ -65,7 +65,8 @@ class Graph:
     def calcDist(self, node1, node2):
         
         "Calculate distance between the two nodes"
-        
+        # print("Pos", node1.pos)
+        # print("Pos", node2.pos)
         distance = np.sqrt((node1.pos[0] - node2.pos[0])**2 + (node1.pos[1] - node2.pos[1])**2 + (node1.pos[2] - node2.pos[2])**2)
         
         return distance
@@ -111,7 +112,7 @@ class Graph:
         
         "Find the nearest node to the new node"
         minDis = 10000000
-        nearestNode = Node([0,0,0])
+        nearestNode = Node(np.array([0,0,0]))
         for node in self.nodeArray:
             
             distance = self.calcDist(node, newNode)
@@ -236,6 +237,15 @@ class Graph:
             print(world_voxels.shape)
             ax.voxels(world_voxels, edgecolor='k')
             print("done")
+
+        x_coords, y_coords, z_coords = self.straight_line[:, 0], self.straight_line[:, 1], self.straight_line[:, 2]
+        ax.plot(x_coords, y_coords, z_coords, linestyle='-', color='blue', label='Line')
+        ax.scatter(self.start.pos[0], self.start.pos[1], self.start.pos[2], color='green', label='Start Point')
+        ax.scatter(self.goal.pos[0], self.goal.pos[1], self.goal.pos[2], color='red', label='End Point')
+        ax.set_xlabel('X axis')
+        ax.set_ylabel('Y axis')
+        ax.set_zlabel('Z axis')
+
         plt.show()
 
     def draw_line_samples(self):
@@ -249,6 +259,11 @@ class Graph:
         self.ax.scatter(self.start.pos[0], self.start.pos[1], self.start.pos[2], color='green', label='Start Point')
         self.ax.scatter(self.goal.pos[0], self.goal.pos[1], self.goal.pos[2], color='red', label='End Point')
         self.ax.scatter(x_points, y_points, z_points, color='purple')
+
+        self.ax.set_xlabel('X axis')
+        self.ax.set_ylabel('Y axis')
+        self.ax.set_zlabel('Z axis')
+        # plt.legend()
         plt.show()
         
         
@@ -257,17 +272,17 @@ class Graph:
         
         "Finds all nodes in a sphere with defined radius around the given node"
         
-        xCeil = centerNode.pos[0] + radius
-        xFloor = centerNode.pos[0] - radius
-        yCeil = centerNode.pos[1] + radius
-        yFloor = centerNode.pos[1] - radius
-        zCeil = centerNode.pos[2] + radius
-        zFloor = centerNode.pos[2] - radius
+        # xCeil = centerNode.pos[0] + radius
+        # xFloor = centerNode.pos[0] - radius
+        # yCeil = centerNode.pos[1] + radius
+        # yFloor = centerNode.pos[1] - radius
+        # zCeil = centerNode.pos[2] + radius
+        # zFloor = centerNode.pos[2] - radius
         indexList = []
 
         for idx, node in np.ndenumerate(self.nodeArray):
             
-            if ((xFloor <= node.pos[0] <= xCeil) and (yFloor <= node.pos[1] <= yCeil) and (zFloor <= node.pos[2] <= zCeil) and (node != centerNode)):
+            if (self.calcDist(node, centerNode) <= radius) and (node != centerNode):
                 
                 indexList.append(idx)
         
@@ -376,7 +391,7 @@ def rrt_star(graph, occ_grid, goal_threshold, step, rewire_rad, sample_node=None
         randY = np.random.uniform(min_space[1], max_space[1]-0.0001)
         randZ = np.random.uniform(min_space[2], max_space[2]-0.0001)
         
-        newNode = Node([randX, randY, randZ])
+        newNode = Node(np.array([randX, randY, randZ]))
     else:
         newNode = sample_node
 
@@ -443,18 +458,18 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
         covariance = np.eye(3)*0.05*line_magnitude
         randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
     elif covariance_type == "varying":
-        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.05*line_magnitude)
+        graph.covariance = np.clip(graph.covariance,np.eye(3)*0.01,np.eye(3)*0.1*line_magnitude)
         randX, randY, randZ = line_gaussian_sample(graph, mean, graph.covariance, covariance_type)
     elif covariance_type == "diverging_cone":
-        covariance = np.eye(3)*0.05*line_magnitude
+        covariance = np.eye(3)*0.1*line_magnitude
         graph.covariance, randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
     elif covariance_type == "converging_cone":
-        covariance = np.eye(3)*0.05*line_magnitude
+        covariance = np.eye(3)*0.1*line_magnitude
         graph.covariance, randX, randY, randZ = line_gaussian_sample(graph, mean, covariance, covariance_type)
 
     in_grid = occ_grid.inOccGrid((randX, randY, randZ))
 
-    newNode = Node([randX,randY,randZ])
+    newNode = Node(np.array([randX,randY,randZ]))
 
     nearestNode = graph.findNearestNode(newNode)
 
@@ -474,7 +489,7 @@ def rrt_star_gaussian(graph, occ_grid, goal_threshold, step, rewire_rad, covaria
         if (distanceToGoal < goal_threshold):
 
             graph.goalReached = True
-            print("Node array:", graph.nodeArray)
+            # print("Node array:", graph.nodeArray)
     elif covariance_type == "varying":
         graph.covariance*=1.1 
         # print("collision")            
@@ -497,7 +512,7 @@ def informed_rrt_star(graph : Graph, occ_grid, goal_threshold, step, rewire_rad,
 
         # use the goal, instead of the last node
         d_goal = np.sqrt(np.sum((rand_sample-graph.goal.pos)**2))
-        print("path length = ", path_len)
+        # print("path length = ", path_len)
         #print("charact dis = ", d_start + d_goal)
 
         if d_start + d_goal <= path_len:
