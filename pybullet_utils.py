@@ -2,7 +2,7 @@ import pybullet as p
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-from rrt import Graph
+from algorithms_rrt import Graph
 import occupancy_grid
 from scipy.ndimage import convolve
 
