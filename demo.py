@@ -23,7 +23,7 @@ GUI = True
 parser = argparse.ArgumentParser(description='Demo of the working algorithm in Pybullet.')
 
 possible_algorithms = ["rrt_star", "informed-rrt_star", "rrt_star-n", "rrt_star-ni",  "cc-rrt_star-n", "dc-rrt_star-n"]
-possible_scenarios = ["bridge", "near", "far", "mid"] #, "forest"]
+possible_scenarios = ["bridge", "near", "far", "mid", "wall"]
 
 parser.add_argument('--alg', type=str, default="rrt_star", choices=possible_algorithms, help='Algorithm chosen')
 parser.add_argument('--sce', type=str, default="bridge", choices=possible_scenarios, help='Scenario chosen')
@@ -75,6 +75,13 @@ if args.sce == "bridge":
     height_list = [5, 5, 5]
     depth_list = [5, 2.5, 5]
     goal = [8, 8, 2.5]
+
+if args.sce == "wall":
+    pos_list = [[3, 0, 0],[3, 3, 0]]
+    width_list = [1, 1]
+    height_list = [3, 3]
+    depth_list = [5, 5]
+    goal = [6, 1, 4]
 
 wallIds, occ_grid = createCubes(pos_list, width_list, height_list, depth_list, min_bound=min_bound, max_bound=max_bound, using_sim=True)
 # scene_ids, occ_grid = treeScenario(6, min_bound, max_bound, size=0.25, using_sim=True)
