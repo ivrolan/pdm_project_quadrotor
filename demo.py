@@ -110,7 +110,7 @@ iter = 0
 
 # possible_algorithms = ["rrt_star", "informed-rrt_star", "rrt_star-n", "rrt_star-ni",  "cc-rrt_star-n", "dc-rrt_star-n"]
 
-for i in range(2000):
+for i in range(args.iter):
     if (args.alg == "rrt_star"):
         algorithms_rrt.rrt_star(graph, occ_grid, threshold, step, rewire_radius,  points_interp=50)
     elif (args.alg == "cc-rrt_star-n") :
@@ -125,8 +125,11 @@ for i in range(2000):
         algorithms_rrt.informed_rrt_star(graph, occ_grid, threshold, 0.2, rewire_radius, points_interp=50)
 
     iter += 1
+
+reached = False
 if len(graph.getPath(threshold)) > 1: 
     print("GOAL:", graph.goal.pos[0], graph.goal.pos[1], graph.goal.pos[2], "reached")
+    reached = True
 else:
     print("NOT_REACHED")
 ns_ellapsed = time.time_ns() - start
@@ -143,7 +146,7 @@ path = graph.getPath(threshold)[::-1]
 for i in range(len(path)):
     path[i] = np.array([path[i].pos[0], path[i].pos[1], path[i].pos[2]])
 
-if GUI:
+if GUI and reached:
     print("Path is:", path)    
     plotGraph(graph)
     plotPointsPath(path, rgba=[1.,0.,0., 0.8])
@@ -166,46 +169,47 @@ camera_yaw = 30.0
 
 
 time_controller = -1
-# from here start recording
-if args.video:
-    logId = p.startStateLogging(loggingType=p.STATE_LOGGING_VIDEO_MP4, fileName="test.mp4")
-
 # compute the length of the path
 total_length = 0
 for i in range(len(path) - 1):
     total_length += np.sqrt(np.sum((path[i+1] - path[i])**2))
+if reached:
+    # from here start recording
+    if args.video and reached:
+        logId = p.startStateLogging(loggingType=p.STATE_LOGGING_VIDEO_MP4, fileName="test.mp4")
 
-duration_sec = total_length*2.4
-for i in range(0, int(duration_sec*env.CTRL_FREQ)):
-    obs, reward, terminated, truncated, info = env.step(action)
-    # print(obs)
 
-    action[0], _, _ = ctrl.computeControlFromState(control_timestep=env.CTRL_TIMESTEP,
-                                                                state=obs[0],
-                                                                # target_pos=np.hstack([TARGET_POS[wp_counters[j], 0:2], INIT_XYZS[j, 2]]),
-                                                                target_pos=path[next_wp_index],
-                                                                target_rpy=INIT_RPYS[0, :]
-                                                                )
-    print(obs[0][:3])
-    p.resetDebugVisualizerCamera(
-        cameraTargetPosition=obs[0][:3],
-        cameraDistance=camera_distance,
-        cameraYaw=camera_yaw,
-        cameraPitch=camera_pitch,
-    )
-    env.render()
-    if np.sqrt(np.sum((path[next_wp_index] - obs[0,:3])**2)) < 0.15 and next_wp_index < len(path):
-        print("WAS GOING TO:", path[next_wp_index])
-        next_wp_index += 1
-        if next_wp_index == len(path):
-            time_controller = time.time_ns() - controller_start
-            break
-        
-    if GUI:
-        sync(i, START, env.CTRL_TIMESTEP)
+    duration_sec = total_length*2.4
+    for i in range(0, int(duration_sec*env.CTRL_FREQ)):
+        obs, reward, terminated, truncated, info = env.step(action)
+        # print(obs)
 
-if args.video:
-    p.stopStateLogging(logId)
+        action[0], _, _ = ctrl.computeControlFromState(control_timestep=env.CTRL_TIMESTEP,
+                                                                    state=obs[0],
+                                                                    # target_pos=np.hstack([TARGET_POS[wp_counters[j], 0:2], INIT_XYZS[j, 2]]),
+                                                                    target_pos=path[next_wp_index],
+                                                                    target_rpy=INIT_RPYS[0, :]
+                                                                    )
+        print(obs[0][:3])
+        p.resetDebugVisualizerCamera(
+            cameraTargetPosition=obs[0][:3],
+            cameraDistance=camera_distance,
+            cameraYaw=camera_yaw,
+            cameraPitch=camera_pitch,
+        )
+        env.render()
+        if np.sqrt(np.sum((path[next_wp_index] - obs[0,:3])**2)) < 0.15 and next_wp_index < len(path):
+            print("WAS GOING TO:", path[next_wp_index])
+            next_wp_index += 1
+            if next_wp_index == len(path):
+                time_controller = time.time_ns() - controller_start
+                break
+            
+        if GUI:
+            sync(i, START, env.CTRL_TIMESTEP)
+
+    if args.video:
+        p.stopStateLogging(logId)
 env.close()
 
 print("Planning_time nanoseconds:", ns_ellapsed)
