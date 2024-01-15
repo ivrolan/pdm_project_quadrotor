@@ -145,7 +145,7 @@ def runTest(scenario, algorithm, cubesFlag=True):
     # Construct the filename with the timestamp - change path - scenario - search algorithm.
     
 
-    filename = f"Data/wallscenario/{scenario}_{algorithm}_{timestamp}.csv"
+    filename = f"Data/{scenario}_{algorithm}_{timestamp}.csv"
 
     
     
